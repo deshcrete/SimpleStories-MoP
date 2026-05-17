@@ -1,0 +1,10 @@
+numpy
+matplotlib
+pandas
+datasets
+ipykernel
+kmodes
+torch
+transformers
+peft
+accelerate
