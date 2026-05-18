@@ -1,8 +1,12 @@
 """Plot holdout NLL curves from finetuning runs.
 
 Reads `runs/<name>/holdout_metrics.jsonl` from every subdirectory and writes:
-    plots/overall.png      one line per run, holdout/nll_overall vs step
-    plots/per_theme.png    one subplot per theme, one line per run
+    plots/overall.png       one line per run, holdout/nll_overall vs step
+    plots/per_theme.png     one subplot per theme, one line per run
+    plots/own_vs_cross.png  one subplot per persona run, comparing the run's
+                            NLL on its OWN theme vs the mean over the other
+                            themes (forking = specialization; both rising =
+                            overfitting/forgetting)
 
 Usage:
     python plot_runs.py
@@ -83,6 +87,70 @@ def plot_per_theme(runs: dict[str, pd.DataFrame], out_path: Path) -> None:
     plt.close(fig)
 
 
+def _slugify(theme: str) -> str:
+    # Matches the slug convention used in personaDataset.build_theme_splits.
+    return "".join(c if c.isalnum() else "_" for c in str(theme)).strip("_").lower()
+
+
+def plot_own_vs_cross(runs: dict[str, pd.DataFrame], out_path: Path) -> None:
+    persona_runs = {n: df for n, df in runs.items() if n.startswith("theme_")}
+    if not persona_runs:
+        return
+
+    all_themes: set[str] = set()
+    for df in runs.values():
+        for c in df.columns:
+            if c.startswith("holdout/nll["):
+                all_themes.add(c[len("holdout/nll[") : -1])
+    slug_to_theme = {_slugify(t): t for t in all_themes}
+
+    mixture_df = runs.get("mixture")
+
+    items = sorted(persona_runs.items())
+    n = len(items)
+    ncols = min(3, n)
+    nrows = (n + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 3.5 * nrows), squeeze=False)
+
+    for ax, (name, df) in zip(axes.flat, items):
+        # Run name format: "theme_<i>_<slug>".
+        parts = name.split("_", 2)
+        own_theme = slug_to_theme.get(parts[2]) if len(parts) == 3 else None
+        own_col = f"holdout/nll[{own_theme}]" if own_theme else None
+        if own_col is None or own_col not in df.columns:
+            ax.set_title(f"{name} (unmatched)")
+            continue
+
+        cross_cols = [
+            f"holdout/nll[{t}]"
+            for t in all_themes
+            if t != own_theme and f"holdout/nll[{t}]" in df.columns
+        ]
+        cross_mean = df[cross_cols].mean(axis=1)
+
+        ax.plot(df["step"], df[own_col],
+                label=f"own ({own_theme})", color="C0", marker="o", markersize=3)
+        ax.plot(df["step"], cross_mean,
+                label="cross (mean of others)", color="C3", marker="o", markersize=3, linestyle="--")
+        if mixture_df is not None and own_col in mixture_df.columns:
+            ax.plot(mixture_df["step"], mixture_df[own_col],
+                    label="mixture on own theme", color="gray", linewidth=1.2, alpha=0.8)
+
+        ax.set_title(name)
+        ax.set_xlabel("step")
+        ax.set_ylabel("holdout NLL")
+        ax.grid(True, alpha=0.3)
+        ax.legend(fontsize=7)
+
+    for ax in axes.flat[n:]:
+        ax.set_visible(False)
+
+    fig.suptitle("Own-theme vs cross-theme holdout NLL (persona runs)")
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--runs_dir", default="runs")
@@ -103,7 +171,8 @@ def main() -> None:
 
     plot_overall(runs, out_dir / "overall.png")
     plot_per_theme(runs, out_dir / "per_theme.png")
-    print(f"Wrote {out_dir / 'overall.png'} and {out_dir / 'per_theme.png'} "
+    plot_own_vs_cross(runs, out_dir / "own_vs_cross.png")
+    print(f"Wrote overall.png, per_theme.png, own_vs_cross.png in {out_dir}/ "
           f"for {len(runs)} runs.")
 
 

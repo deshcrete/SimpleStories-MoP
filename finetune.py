@@ -120,6 +120,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--holdout_dataset", required=True, help="JSONL with {text, theme}.")
     p.add_argument("--output_dir", required=True)
     p.add_argument("--epochs", type=float, default=3.0)
+    p.add_argument("--max_steps", type=int, default=-1,
+                   help="If >0, total optimizer steps. Overrides --epochs.")
     p.add_argument("--batch_size", type=int, default=8)
     p.add_argument("--lr", type=float, default=2e-4)
     p.add_argument("--max_length", type=int, default=512)
@@ -128,6 +130,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--lora_dropout", type=float, default=0.05)
     p.add_argument("--eval_steps", type=int, default=200)
     p.add_argument("--save_steps", type=int, default=200)
+    p.add_argument("--save_total_limit", type=int, default=3)
     p.add_argument("--logging_steps", type=int, default=50)
     p.add_argument("--seed", type=int, default=0)
     return p.parse_args()
@@ -162,6 +165,7 @@ def main():
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         num_train_epochs=args.epochs,
+        max_steps=args.max_steps,
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         learning_rate=args.lr,
@@ -170,7 +174,7 @@ def main():
         eval_steps=args.eval_steps,
         save_strategy="steps",
         save_steps=args.save_steps,
-        save_total_limit=3,
+        save_total_limit=args.save_total_limit,
         seed=args.seed,
         report_to=[],
         remove_unused_columns=False,
