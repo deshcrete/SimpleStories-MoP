@@ -1,5 +1,7 @@
 import json
+import math
 import os
+import random
 from pathlib import Path
 from typing import Sequence
 
@@ -133,6 +135,67 @@ def build_theme_splits(
     paths["holdout"] = holdout_path
 
     return paths
+
+
+def build_skewed_mixture(
+    output_path: str | Path,
+    data_dir: str | Path = "data",
+    decay: float = 1.0,
+    total_size: int | None = None,
+    random_state: int = 0,
+) -> Path:
+    """Build an exp-decay-weighted mixture jsonl from existing per-theme jsonls.
+
+    Reads sorted `data_dir/theme_*.jsonl` (so the uniform holdout is untouched),
+    assigns theme weights w_i = exp(-decay * i) / Z, and samples each theme
+    *with replacement* to hit floor(w_i * total_size) rows. Rounding leftovers
+    go to the highest-weight themes. Default `total_size` matches the sum of
+    the input theme files, i.e. the size of the uniform mixture.
+
+    Theme ordering follows the filename sort, which matches the
+    frequency-rank order produced by `build_theme_splits` (theme_0 = most
+    common in the source split, theme_5 = least).
+    """
+    data_dir = Path(data_dir)
+    theme_files = sorted(data_dir.glob("theme_*.jsonl"))
+    if not theme_files:
+        raise FileNotFoundError(f"no theme_*.jsonl under {data_dir}")
+
+    rows_per_theme: list[list[dict]] = []
+    for p in theme_files:
+        with p.open(encoding="utf-8") as f:
+            rows_per_theme.append([json.loads(line) for line in f if line.strip()])
+
+    n_themes = len(theme_files)
+    raw = [math.exp(-decay * i) for i in range(n_themes)]
+    s = sum(raw)
+    weights = [w / s for w in raw]
+
+    if total_size is None:
+        total_size = sum(len(r) for r in rows_per_theme)
+
+    counts = [int(w * total_size) for w in weights]
+    leftover = total_size - sum(counts)
+    for i in sorted(range(n_themes), key=lambda j: -weights[j])[:leftover]:
+        counts[i] += 1
+
+    rng = random.Random(random_state)
+    all_rows: list[dict] = []
+    for theme_rows, n in zip(rows_per_theme, counts):
+        if n > 0:
+            all_rows.extend(rng.choices(theme_rows, k=n))
+    rng.shuffle(all_rows)
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as f:
+        for r in all_rows:
+            f.write(json.dumps(r) + "\n")
+
+    print(f"Wrote {len(all_rows)} rows to {output_path} (decay={decay})")
+    for p, w, n in zip(theme_files, weights, counts):
+        print(f"  {p.name:<40} weight={w:.4f}  count={n}")
+    return output_path
 
 
 if __name__ == "__main__":
