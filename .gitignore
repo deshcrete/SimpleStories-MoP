@@ -2,3 +2,6 @@ data
 runs
 runs_compare
 runs_early
+results/checkpoints
+results/lotp
+results/metrics

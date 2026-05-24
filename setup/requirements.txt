@@ -1,10 +1,9 @@
 numpy
+scipy
 matplotlib
 pandas
 datasets
-ipykernel
-kmodes
 torch
-transformers
+transformers==4.46.3
 peft
 accelerate

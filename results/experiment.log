@@ -1,0 +1,256 @@
+Repo card metadata block was not found. Setting CardData to empty.
+Loaded 19000 total rows from desh2806/simplestories-personas (hf splits: ['train'])
+noir_detective: total=3800 -> persona_train=500, mixture=500, inference=150, reserve=2650
+fairy_tale: total=3800 -> persona_train=500, mixture=500, inference=150, reserve=2650
+scientific_explainer: total=3800 -> persona_train=500, mixture=500, inference=150, reserve=2650
+absurdist: total=3800 -> persona_train=500, mixture=500, inference=150, reserve=2650
+epistolary: total=3800 -> persona_train=500, mixture=500, inference=150, reserve=2650
+
+manifest written to /SimpleStories-MoP/data/manifest.json
+[noir_detective] step     8  train_loss=4.0659  eval_loss=3.8207
+[noir_detective] step    16  train_loss=2.8640  eval_loss=2.9040
+[noir_detective] step    24  train_loss=2.4566  eval_loss=2.6231
+[noir_detective] step    32  train_loss=2.3788  eval_loss=2.4573
+[noir_detective] step    40  train_loss=2.0349  eval_loss=2.3653
+[noir_detective] step    48  train_loss=1.9691  eval_loss=2.2864
+[noir_detective] step    56  train_loss=1.7088  eval_loss=2.2725
+[noir_detective] step    64  train_loss=1.7326  eval_loss=2.2445
+[noir_detective] step    72  train_loss=1.4887  eval_loss=2.2540
+[noir_detective] step    80  train_loss=1.4554  eval_loss=2.2304
+[noir_detective] step    96  train_loss=1.2746  eval_loss=2.2591
+[noir_detective] step   112  train_loss=1.1466  eval_loss=2.3243
+[noir_detective] step   128  train_loss=0.9818  eval_loss=2.3917
+[noir_detective] step   144  train_loss=0.7603  eval_loss=2.4979
+[noir_detective] step   160  train_loss=0.5796  eval_loss=2.5831
+[noir_detective] done. 160 steps. checkpoints in /SimpleStories-MoP/results/checkpoints/noir_detective
+[fairy_tale] step     8  train_loss=2.6021  eval_loss=2.5060
+[fairy_tale] step    16  train_loss=2.2713  eval_loss=2.1799
+[fairy_tale] step    24  train_loss=1.8414  eval_loss=2.0219
+[fairy_tale] step    32  train_loss=1.7451  eval_loss=1.9155
+[fairy_tale] step    40  train_loss=1.4633  eval_loss=1.8663
+[fairy_tale] step    48  train_loss=1.4147  eval_loss=1.8314
+[fairy_tale] step    56  train_loss=1.1875  eval_loss=1.8363
+[fairy_tale] step    64  train_loss=1.1446  eval_loss=1.8288
+[fairy_tale] step    72  train_loss=0.9339  eval_loss=1.8556
+[fairy_tale] step    80  train_loss=1.0255  eval_loss=1.8747
+[fairy_tale] step    96  train_loss=0.7326  eval_loss=1.9225
+[fairy_tale] step   112  train_loss=0.6269  eval_loss=1.9978
+[fairy_tale] step   128  train_loss=0.4388  eval_loss=2.0650
+[fairy_tale] step   144  train_loss=0.3650  eval_loss=2.1533
+[fairy_tale] step   160  train_loss=0.2423  eval_loss=2.2250
+[fairy_tale] done. 160 steps. checkpoints in /SimpleStories-MoP/results/checkpoints/fairy_tale
+[scientific_explainer] step     8  train_loss=3.2306  eval_loss=3.0729
+[scientific_explainer] step    16  train_loss=2.5967  eval_loss=2.6312
+[scientific_explainer] step    24  train_loss=2.2492  eval_loss=2.4495
+[scientific_explainer] step    32  train_loss=2.2133  eval_loss=2.3173
+[scientific_explainer] step    40  train_loss=1.7257  eval_loss=2.2524
+[scientific_explainer] step    48  train_loss=1.7979  eval_loss=2.2095
+[scientific_explainer] step    56  train_loss=1.3962  eval_loss=2.2092
+[scientific_explainer] step    64  train_loss=1.4789  eval_loss=2.1965
+[scientific_explainer] step    72  train_loss=1.1103  eval_loss=2.2307
+[scientific_explainer] step    80  train_loss=1.1191  eval_loss=2.2303
+[scientific_explainer] step    96  train_loss=1.0038  eval_loss=2.2969
+[scientific_explainer] step   112  train_loss=0.8360  eval_loss=2.3873
+[scientific_explainer] step   128  train_loss=0.5652  eval_loss=2.4776
+[scientific_explainer] step   144  train_loss=0.4324  eval_loss=2.5784
+[scientific_explainer] step   160  train_loss=0.3350  eval_loss=2.6645
+[scientific_explainer] done. 160 steps. checkpoints in /SimpleStories-MoP/results/checkpoints/scientific_explainer
+[absurdist] step     8  train_loss=3.7039  eval_loss=3.6275
+[absurdist] step    16  train_loss=2.9064  eval_loss=2.8700
+[absurdist] step    24  train_loss=2.4251  eval_loss=2.5731
+[absurdist] step    32  train_loss=2.2744  eval_loss=2.3995
+[absurdist] step    40  train_loss=2.0555  eval_loss=2.2991
+[absurdist] step    48  train_loss=1.9656  eval_loss=2.2232
+[absurdist] step    56  train_loss=1.7606  eval_loss=2.1873
+[absurdist] step    64  train_loss=1.7567  eval_loss=2.1441
+[absurdist] step    72  train_loss=1.5794  eval_loss=2.1525
+[absurdist] step    80  train_loss=1.6534  eval_loss=2.1261
+[absurdist] step    96  train_loss=1.3721  eval_loss=2.1541
+[absurdist] step   112  train_loss=1.2446  eval_loss=2.2053
+[absurdist] step   128  train_loss=1.0559  eval_loss=2.2345
+[absurdist] step   144  train_loss=0.8565  eval_loss=2.3214
+[absurdist] step   160  train_loss=0.8066  eval_loss=2.3907
+[absurdist] done. 160 steps. checkpoints in /SimpleStories-MoP/results/checkpoints/absurdist
+[epistolary] step     8  train_loss=2.9783  eval_loss=2.9799
+[epistolary] step    16  train_loss=2.6613  eval_loss=2.6097
+[epistolary] step    24  train_loss=2.3138  eval_loss=2.4057
+[epistolary] step    32  train_loss=2.1192  eval_loss=2.2680
+[epistolary] step    40  train_loss=1.8074  eval_loss=2.2009
+[epistolary] step    48  train_loss=1.7866  eval_loss=2.1657
+[epistolary] step    56  train_loss=1.5190  eval_loss=2.1512
+[epistolary] step    64  train_loss=1.4539  eval_loss=2.1066
+[epistolary] step    72  train_loss=1.2825  eval_loss=2.1275
+[epistolary] step    80  train_loss=1.2989  eval_loss=2.1125
+[epistolary] step    96  train_loss=1.1023  eval_loss=2.1375
+[epistolary] step   112  train_loss=1.0359  eval_loss=2.2366
+[epistolary] step   128  train_loss=0.7693  eval_loss=2.2500
+[epistolary] step   144  train_loss=0.6492  eval_loss=2.3301
+[epistolary] step   160  train_loss=0.4468  eval_loss=2.3991
+[epistolary] done. 160 steps. checkpoints in /SimpleStories-MoP/results/checkpoints/epistolary
+[mixture] step    20  train_loss=2.7974  eval_loss=2.7536
+[mixture] step    40  train_loss=2.3586  eval_loss=2.4008
+[mixture] step    60  train_loss=2.3196  eval_loss=2.2618
+[mixture] step    80  train_loss=1.9753  eval_loss=2.2125
+[mixture] step   100  train_loss=1.9049  eval_loss=2.1792
+[mixture] step   120  train_loss=2.0216  eval_loss=2.1625
+[mixture] step   140  train_loss=2.0018  eval_loss=2.1128
+[mixture] step   160  train_loss=1.7018  eval_loss=2.1564
+[mixture] step   180  train_loss=1.8189  eval_loss=2.1286
+[mixture] step   200  train_loss=1.7849  eval_loss=2.1010
+[mixture] step   250  train_loss=1.4921  eval_loss=2.1536
+[mixture] step   300  train_loss=1.6217  eval_loss=2.1140
+[mixture] step   350  train_loss=1.3770  eval_loss=2.1567
+[mixture] step   400  train_loss=1.2121  eval_loss=2.2426
+[mixture] step   450  train_loss=1.3445  eval_loss=2.2058
+[mixture] step   500  train_loss=1.1247  eval_loss=2.2642
+[mixture] step   550  train_loss=1.1952  eval_loss=2.2572
+[mixture] step   600  train_loss=1.0707  eval_loss=2.3275
+[mixture] step   650  train_loss=0.9843  eval_loss=2.4101
+[mixture] step   700  train_loss=0.9749  eval_loss=2.3846
+[mixture] step   750  train_loss=0.7334  eval_loss=2.4599
+[mixture] done. 790 steps. checkpoints in /SimpleStories-MoP/results/checkpoints/mixture
+[noir_detective] step     0  total_logp= -522524.6  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[noir_detective] step     8  total_logp= -687476.4  ‖θ‖=101.08  ‖θ−θ_base‖=3.8660
+[noir_detective] step    16  total_logp= -598347.3  ‖θ‖=101.14  ‖θ−θ_base‖=5.6450
+[noir_detective] step    24  total_logp= -580186.1  ‖θ‖=101.18  ‖θ−θ_base‖=6.8073
+[noir_detective] step    32  total_logp= -562629.5  ‖θ‖=101.22  ‖θ−θ_base‖=7.5837
+[noir_detective] step    40  total_logp= -557417.7  ‖θ‖=101.25  ‖θ−θ_base‖=8.1504
+[noir_detective] step    48  total_logp= -552729.7  ‖θ‖=101.27  ‖θ−θ_base‖=8.5982
+[noir_detective] step    56  total_logp= -558087.8  ‖θ‖=101.29  ‖θ−θ_base‖=8.9975
+[noir_detective] step    64  total_logp= -559115.6  ‖θ‖=101.32  ‖θ−θ_base‖=9.3672
+[noir_detective] step    72  total_logp= -568613.8  ‖θ‖=101.35  ‖θ−θ_base‖=9.7382
+[noir_detective] step    80  total_logp= -567436.6  ‖θ‖=101.38  ‖θ−θ_base‖=10.1082
+[noir_detective] step    96  total_logp= -589365.4  ‖θ‖=101.46  ‖θ−θ_base‖=10.8646
+[noir_detective] step   112  total_logp= -611058.6  ‖θ‖=101.56  ‖θ−θ_base‖=11.6399
+[noir_detective] step   128  total_logp= -628139.6  ‖θ‖=101.67  ‖θ−θ_base‖=12.4057
+[noir_detective] step   144  total_logp= -657598.7  ‖θ‖=101.80  ‖θ−θ_base‖=13.1500
+[noir_detective] step   160  total_logp= -675615.3  ‖θ‖=101.92  ‖θ−θ_base‖=13.8468
+[noir_detective] eval done -> /SimpleStories-MoP/results/metrics/noir_detective
+[fairy_tale] step     0  total_logp= -522524.6  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[fairy_tale] step     8  total_logp= -570143.0  ‖θ‖=101.03  ‖θ−θ_base‖=3.6855
+[fairy_tale] step    16  total_logp= -526205.6  ‖θ‖=101.04  ‖θ−θ_base‖=5.3225
+[fairy_tale] step    24  total_logp= -505193.7  ‖θ‖=101.04  ‖θ−θ_base‖=6.3800
+[fairy_tale] step    32  total_logp= -493528.9  ‖θ‖=101.05  ‖θ−θ_base‖=7.1189
+[fairy_tale] step    40  total_logp= -495600.1  ‖θ‖=101.07  ‖θ−θ_base‖=7.6909
+[fairy_tale] step    48  total_logp= -494970.1  ‖θ‖=101.10  ‖θ−θ_base‖=8.1731
+[fairy_tale] step    56  total_logp= -504385.2  ‖θ‖=101.14  ‖θ−θ_base‖=8.6165
+[fairy_tale] step    64  total_logp= -509558.2  ‖θ‖=101.18  ‖θ−θ_base‖=9.0378
+[fairy_tale] step    72  total_logp= -520216.2  ‖θ‖=101.23  ‖θ−θ_base‖=9.4605
+[fairy_tale] step    80  total_logp= -529777.3  ‖θ‖=101.29  ‖θ−θ_base‖=9.8815
+[fairy_tale] step    96  total_logp= -551045.6  ‖θ‖=101.42  ‖θ−θ_base‖=10.7141
+[fairy_tale] step   112  total_logp= -573906.6  ‖θ‖=101.56  ‖θ−θ_base‖=11.5159
+[fairy_tale] step   128  total_logp= -594632.1  ‖θ‖=101.69  ‖θ−θ_base‖=12.2388
+[fairy_tale] step   144  total_logp= -619629.6  ‖θ‖=101.82  ‖θ−θ_base‖=12.8910
+[fairy_tale] step   160  total_logp= -634424.9  ‖θ‖=101.93  ‖θ−θ_base‖=13.4507
+[fairy_tale] eval done -> /SimpleStories-MoP/results/metrics/fairy_tale
+[scientific_explainer] step     0  total_logp= -522524.6  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[scientific_explainer] step     8  total_logp= -580610.9  ‖θ‖=101.03  ‖θ−θ_base‖=3.7074
+[scientific_explainer] step    16  total_logp= -510824.3  ‖θ‖=101.04  ‖θ−θ_base‖=5.3542
+[scientific_explainer] step    24  total_logp= -493321.8  ‖θ‖=101.05  ‖θ−θ_base‖=6.3870
+[scientific_explainer] step    32  total_logp= -479520.7  ‖θ‖=101.07  ‖θ−θ_base‖=7.0970
+[scientific_explainer] step    40  total_logp= -475170.1  ‖θ‖=101.10  ‖θ−θ_base‖=7.6480
+[scientific_explainer] step    48  total_logp= -469728.1  ‖θ‖=101.12  ‖θ−θ_base‖=8.1010
+[scientific_explainer] step    56  total_logp= -476247.7  ‖θ‖=101.16  ‖θ−θ_base‖=8.5227
+[scientific_explainer] step    64  total_logp= -482097.9  ‖θ‖=101.21  ‖θ−θ_base‖=8.9257
+[scientific_explainer] step    72  total_logp= -489883.0  ‖θ‖=101.26  ‖θ−θ_base‖=9.3324
+[scientific_explainer] step    80  total_logp= -493308.6  ‖θ‖=101.32  ‖θ−θ_base‖=9.7380
+[scientific_explainer] step    96  total_logp= -515837.3  ‖θ‖=101.45  ‖θ−θ_base‖=10.5610
+[scientific_explainer] step   112  total_logp= -538427.8  ‖θ‖=101.59  ‖θ−θ_base‖=11.3740
+[scientific_explainer] step   128  total_logp= -563818.3  ‖θ‖=101.74  ‖θ−θ_base‖=12.1388
+[scientific_explainer] step   144  total_logp= -586103.0  ‖θ‖=101.89  ‖θ−θ_base‖=12.8293
+[scientific_explainer] step   160  total_logp= -605820.9  ‖θ‖=102.02  ‖θ−θ_base‖=13.4377
+[scientific_explainer] eval done -> /SimpleStories-MoP/results/metrics/scientific_explainer
+[absurdist] step     0  total_logp= -522524.6  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[absurdist] step     8  total_logp= -718822.4  ‖θ‖=101.10  ‖θ−θ_base‖=3.9514
+[absurdist] step    16  total_logp= -604932.4  ‖θ‖=101.17  ‖θ−θ_base‖=5.7512
+[absurdist] step    24  total_logp= -578891.0  ‖θ‖=101.22  ‖θ−θ_base‖=6.8702
+[absurdist] step    32  total_logp= -565133.0  ‖θ‖=101.26  ‖θ−θ_base‖=7.6176
+[absurdist] step    40  total_logp= -554273.5  ‖θ‖=101.29  ‖θ−θ_base‖=8.1733
+[absurdist] step    48  total_logp= -548420.7  ‖θ‖=101.32  ‖θ−θ_base‖=8.6158
+[absurdist] step    56  total_logp= -550922.3  ‖θ‖=101.35  ‖θ−θ_base‖=9.0187
+[absurdist] step    64  total_logp= -549958.3  ‖θ‖=101.37  ‖θ−θ_base‖=9.4059
+[absurdist] step    72  total_logp= -554221.2  ‖θ‖=101.40  ‖θ−θ_base‖=9.7951
+[absurdist] step    80  total_logp= -563907.9  ‖θ‖=101.43  ‖θ−θ_base‖=10.1894
+[absurdist] step    96  total_logp= -567955.1  ‖θ‖=101.51  ‖θ−θ_base‖=11.0148
+[absurdist] step   112  total_logp= -588467.5  ‖θ‖=101.59  ‖θ−θ_base‖=11.8727
+[absurdist] step   128  total_logp= -607775.8  ‖θ‖=101.69  ‖θ−θ_base‖=12.7459
+[absurdist] step   144  total_logp= -630315.5  ‖θ‖=101.80  ‖θ−θ_base‖=13.6186
+[absurdist] step   160  total_logp= -661891.7  ‖θ‖=101.92  ‖θ−θ_base‖=14.4704
+[absurdist] eval done -> /SimpleStories-MoP/results/metrics/absurdist
+[epistolary] step     0  total_logp= -522524.6  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[epistolary] step     8  total_logp= -735089.9  ‖θ‖=101.08  ‖θ−θ_base‖=3.9179
+[epistolary] step    16  total_logp= -677674.2  ‖θ‖=101.11  ‖θ−θ_base‖=5.7591
+[epistolary] step    24  total_logp= -639201.2  ‖θ‖=101.14  ‖θ−θ_base‖=6.9750
+[epistolary] step    32  total_logp= -617623.2  ‖θ‖=101.15  ‖θ−θ_base‖=7.8373
+[epistolary] step    40  total_logp= -607978.6  ‖θ‖=101.17  ‖θ−θ_base‖=8.4978
+[epistolary] step    48  total_logp= -588027.3  ‖θ‖=101.19  ‖θ−θ_base‖=9.0282
+[epistolary] step    56  total_logp= -592297.5  ‖θ‖=101.22  ‖θ−θ_base‖=9.5030
+[epistolary] step    64  total_logp= -592575.9  ‖θ‖=101.24  ‖θ−θ_base‖=9.9521
+[epistolary] step    72  total_logp= -597372.5  ‖θ‖=101.28  ‖θ−θ_base‖=10.3784
+[epistolary] step    80  total_logp= -603100.4  ‖θ‖=101.31  ‖θ−θ_base‖=10.8044
+[epistolary] step    96  total_logp= -622768.3  ‖θ‖=101.39  ‖θ−θ_base‖=11.6680
+[epistolary] step   112  total_logp= -635159.1  ‖θ‖=101.49  ‖θ−θ_base‖=12.5051
+[epistolary] step   128  total_logp= -675968.6  ‖θ‖=101.59  ‖θ−θ_base‖=13.3485
+[epistolary] step   144  total_logp= -702403.6  ‖θ‖=101.70  ‖θ−θ_base‖=14.1417
+[epistolary] step   160  total_logp= -720402.6  ‖θ‖=101.81  ‖θ−θ_base‖=14.8810
+[epistolary] eval done -> /SimpleStories-MoP/results/metrics/epistolary
+[mixture] step     0  total_logp= -522524.6  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[mixture] step    20  total_logp= -417367.0  ‖θ‖=101.09  ‖θ−θ_base‖=5.9314
+[mixture] step    40  total_logp= -363889.4  ‖θ‖=101.16  ‖θ−θ_base‖=7.4235
+[mixture] step    60  total_logp= -342824.5  ‖θ‖=101.21  ‖θ−θ_base‖=8.0721
+[mixture] step    80  total_logp= -335352.9  ‖θ‖=101.25  ‖θ−θ_base‖=8.5528
+[mixture] step   100  total_logp= -330301.8  ‖θ‖=101.31  ‖θ−θ_base‖=9.1214
+[mixture] step   120  total_logp= -327775.1  ‖θ‖=101.38  ‖θ−θ_base‖=9.6546
+[mixture] step   140  total_logp= -320229.9  ‖θ‖=101.45  ‖θ−θ_base‖=10.1444
+[mixture] step   160  total_logp= -326848.6  ‖θ‖=101.51  ‖θ−θ_base‖=10.6301
+[mixture] step   180  total_logp= -322625.7  ‖θ‖=101.62  ‖θ−θ_base‖=11.2693
+[mixture] step   200  total_logp= -318450.4  ‖θ‖=101.73  ‖θ−θ_base‖=11.8378
+[mixture] step   250  total_logp= -326421.5  ‖θ‖=101.99  ‖θ−θ_base‖=13.1786
+[mixture] step   300  total_logp= -320420.6  ‖θ‖=102.33  ‖θ−θ_base‖=14.5688
+[mixture] step   350  total_logp= -326888.1  ‖θ‖=102.71  ‖θ−θ_base‖=16.0103
+[mixture] step   400  total_logp= -339917.2  ‖θ‖=103.08  ‖θ−θ_base‖=17.3168
+[mixture] step   450  total_logp= -334333.3  ‖θ‖=103.53  ‖θ−θ_base‖=18.6794
+[mixture] step   500  total_logp= -343177.7  ‖θ‖=104.00  ‖θ−θ_base‖=19.9909
+[mixture] step   550  total_logp= -342119.2  ‖θ‖=104.44  ‖θ−θ_base‖=21.1830
+[mixture] step   600  total_logp= -352783.3  ‖θ‖=104.95  ‖θ−θ_base‖=22.4179
+[mixture] step   650  total_logp= -365291.8  ‖θ‖=105.46  ‖θ−θ_base‖=23.7039
+[mixture] step   700  total_logp= -361434.4  ‖θ‖=105.96  ‖θ−θ_base‖=24.8173
+[mixture] step   750  total_logp= -372849.1  ‖θ‖=106.48  ‖θ−θ_base‖=25.9376
+[mixture] step   790  total_logp= -376129.0  ‖θ‖=106.86  ‖θ−θ_base‖=26.7042
+[mixture] eval done -> /SimpleStories-MoP/results/metrics/mixture
+Traceback (most recent call last):
+  File "/SimpleStories-MoP/src/lotp.py", line 30, in <module>
+    from scipy.special import logsumexp
+ModuleNotFoundError: No module named 'scipy'
+
+>>> /usr/bin/python build_splits.py
+
+>>> /usr/bin/python train.py --run noir_detective
+
+>>> /usr/bin/python train.py --run fairy_tale
+
+>>> /usr/bin/python train.py --run scientific_explainer
+
+>>> /usr/bin/python train.py --run absurdist
+
+>>> /usr/bin/python train.py --run epistolary
+
+>>> /usr/bin/python train.py --run mixture
+
+>>> /usr/bin/python eval_checkpoints.py --run noir_detective
+
+>>> /usr/bin/python eval_checkpoints.py --run fairy_tale
+
+>>> /usr/bin/python eval_checkpoints.py --run scientific_explainer
+
+>>> /usr/bin/python eval_checkpoints.py --run absurdist
+
+>>> /usr/bin/python eval_checkpoints.py --run epistolary
+
+>>> /usr/bin/python eval_checkpoints.py --run mixture
+
+>>> /usr/bin/python lotp.py
+step failed: /usr/bin/python lotp.py
+step-aligned: wrote /SimpleStories-MoP/results/lotp/step_aligned.jsonl
+loss-aligned: π = {'noir_detective': 0.14747941677492957, 'fairy_tale': 0.17743724855272602, 'scientific_explainer': 0.3801245011224853, 'absurdist': 0.14747941677492957, 'epistolary': 0.14747941677492957} residual_rms = 225.76522659415895
+              hull escapes = {'tau': 0.0, 'n_escapes': 191, 'n_seqs': 750, 'mean_gap': -146.743875579834, 'max_gap': 281.21368408203125}
