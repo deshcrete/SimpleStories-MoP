@@ -1,6 +1,6 @@
 """For every checkpoint of one run, compute the measurements task_plan.md asks for:
 
-    1. Σ log P(seq) over the 750-seq combined inference set, per sequence.
+    1. Σ log P(seq) over the ~2,500-seq combined test set, per sequence.
        (Sum of log-probs, NOT mean — LoTP is an identity over probabilities.)
     2. Per-persona aggregate Σ_{j ∈ persona_k} log P(seq_j).
     3. ‖θ‖₂ and ‖θ − θ_base‖₂ on the flattened parameter vector.
@@ -8,7 +8,7 @@
        we re-record it here for convenience.
 
 Outputs:
-    results/metrics/<run>/per_sequence_logp.npy   shape (n_checkpoints, 750)
+    results/metrics/<run>/per_sequence_logp.npy   shape (n_checkpoints, ~2,500)
     results/metrics/<run>/checkpoints.jsonl       one line per checkpoint:
         {step, persona_logp: {persona: float}, total_logp, param_norm, dev_norm}
 
@@ -30,7 +30,7 @@ from data import (
     PERSONAS,
     StoryDataset,
     collate_for_clm,
-    load_inference_set,
+    load_test_set,
 )
 from model import (
     BASE_MODEL_ID,
@@ -106,7 +106,7 @@ def eval_run(run: str) -> None:
     base_params = param_vector(base_model)
     del base_model
 
-    eval_rows = load_inference_set()
+    eval_rows = load_test_set()
     eval_ds = StoryDataset(eval_rows, tokenizer)
     eval_loader = DataLoader(
         eval_ds,

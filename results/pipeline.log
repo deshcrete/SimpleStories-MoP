@@ -1,0 +1,300 @@
+=== TRAIN fairy_tale ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (561 > 512). Running this sequence through the model will result in indexing errors
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:869: UserWarning: Memory Efficient attention defaults to a non-deterministic algorithm. To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False). (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/attention_backward.cu:900.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[fairy_tale] step     0/283  val_own=1.6073  val_mix=2.4730
+[fairy_tale] step    14/283  val_own=1.8799  val_mix=3.4056
+[fairy_tale] step    28/283  val_own=1.7022  val_mix=3.2630
+[fairy_tale] step    42/283  val_own=1.6234  val_mix=3.1861
+[fairy_tale] step    56/283  val_own=1.5981  val_mix=3.1854
+[fairy_tale] step    70/283  val_own=1.5709  val_mix=3.1460
+[fairy_tale] step    84/283  val_own=1.5568  val_mix=3.1073
+[fairy_tale] step    98/283  val_own=1.5399  val_mix=3.1857
+[fairy_tale] step   112/283  val_own=1.5368  val_mix=3.1774
+[fairy_tale] step   126/283  val_own=1.5324  val_mix=3.1753
+[fairy_tale] step   140/283  val_own=1.5229  val_mix=3.1780
+[fairy_tale] step   154/283  val_own=1.5225  val_mix=3.1664
+[fairy_tale] step   168/283  val_own=1.5208  val_mix=3.1704
+[fairy_tale] step   182/283  val_own=1.5161  val_mix=3.1835
+[fairy_tale] step   196/283  val_own=1.4985  val_mix=3.2059
+[fairy_tale] step   210/283  val_own=1.4982  val_mix=3.1974
+[fairy_tale] step   224/283  val_own=1.4985  val_mix=3.1997
+[fairy_tale] step   238/283  val_own=1.4915  val_mix=3.2213
+[fairy_tale] step   252/283  val_own=1.4929  val_mix=3.2504
+[fairy_tale] step   266/283  val_own=1.4853  val_mix=3.2361
+[fairy_tale] step   280/283  val_own=1.4879  val_mix=3.2133
+[fairy_tale] step   283/283  val_own=1.4817  val_mix=3.2260
+[fairy_tale] done. 283 steps (283 steps/epoch). checkpoints in /SimpleStories-MoP/results/checkpoints/fairy_tale
+=== TRAIN scientific_explainer ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (561 > 512). Running this sequence through the model will result in indexing errors
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:869: UserWarning: Memory Efficient attention defaults to a non-deterministic algorithm. To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False). (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/attention_backward.cu:900.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[scientific_explainer] step     0/286  val_own=2.4932  val_mix=2.4730
+[scientific_explainer] step    14/286  val_own=2.3468  val_mix=3.2837
+[scientific_explainer] step    28/286  val_own=2.1144  val_mix=3.1212
+[scientific_explainer] step    42/286  val_own=2.0081  val_mix=3.0079
+[scientific_explainer] step    56/286  val_own=1.9613  val_mix=2.9904
+[scientific_explainer] step    70/286  val_own=1.9286  val_mix=2.9644
+[scientific_explainer] step    84/286  val_own=1.9198  val_mix=3.0054
+[scientific_explainer] step    98/286  val_own=1.9023  val_mix=2.9577
+[scientific_explainer] step   112/286  val_own=1.8997  val_mix=2.9325
+[scientific_explainer] step   126/286  val_own=1.8925  val_mix=2.9490
+[scientific_explainer] step   140/286  val_own=1.8783  val_mix=2.9582
+[scientific_explainer] step   154/286  val_own=1.8707  val_mix=2.9429
+[scientific_explainer] step   168/286  val_own=1.8658  val_mix=2.9864
+[scientific_explainer] step   182/286  val_own=1.8573  val_mix=2.9841
+[scientific_explainer] step   196/286  val_own=1.8537  val_mix=2.9931
+[scientific_explainer] step   210/286  val_own=1.8558  val_mix=2.9815
+[scientific_explainer] step   224/286  val_own=1.8435  val_mix=3.0024
+[scientific_explainer] step   238/286  val_own=1.8346  val_mix=3.0169
+[scientific_explainer] step   252/286  val_own=1.8239  val_mix=2.9516
+[scientific_explainer] step   266/286  val_own=1.8191  val_mix=2.9784
+[scientific_explainer] step   280/286  val_own=1.8188  val_mix=2.9642
+[scientific_explainer] step   286/286  val_own=1.8144  val_mix=2.9373
+[scientific_explainer] done. 286 steps (286 steps/epoch). checkpoints in /SimpleStories-MoP/results/checkpoints/scientific_explainer
+=== TRAIN absurdist ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (561 > 512). Running this sequence through the model will result in indexing errors
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:869: UserWarning: Memory Efficient attention defaults to a non-deterministic algorithm. To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False). (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/attention_backward.cu:900.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[absurdist] step     0/285  val_own=2.6544  val_mix=2.4730
+[absurdist] step    14/285  val_own=2.6237  val_mix=3.8567
+[absurdist] step    28/285  val_own=2.2857  val_mix=3.6404
+[absurdist] step    42/285  val_own=2.1247  val_mix=3.5000
+[absurdist] step    56/285  val_own=2.0370  val_mix=3.3914
+[absurdist] step    70/285  val_own=1.9820  val_mix=3.3474
+[absurdist] step    84/285  val_own=1.9451  val_mix=3.3039
+[absurdist] step    98/285  val_own=1.9210  val_mix=3.3043
+[absurdist] step   112/285  val_own=1.9000  val_mix=3.2970
+[absurdist] step   126/285  val_own=1.8833  val_mix=3.3055
+[absurdist] step   140/285  val_own=1.8678  val_mix=3.3065
+[absurdist] step   154/285  val_own=1.8467  val_mix=3.3408
+[absurdist] step   168/285  val_own=1.8322  val_mix=3.3373
+[absurdist] step   182/285  val_own=1.8288  val_mix=3.3203
+[absurdist] step   196/285  val_own=1.8141  val_mix=3.3308
+[absurdist] step   210/285  val_own=1.8011  val_mix=3.3531
+[absurdist] step   224/285  val_own=1.7943  val_mix=3.3474
+[absurdist] step   238/285  val_own=1.7948  val_mix=3.3423
+[absurdist] step   252/285  val_own=1.7851  val_mix=3.3751
+[absurdist] step   266/285  val_own=1.7755  val_mix=3.3565
+[absurdist] step   280/285  val_own=1.7651  val_mix=3.3514
+[absurdist] step   285/285  val_own=1.7633  val_mix=3.3439
+[absurdist] done. 285 steps (285 steps/epoch). checkpoints in /SimpleStories-MoP/results/checkpoints/absurdist
+=== TRAIN epistolary ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (561 > 512). Running this sequence through the model will result in indexing errors
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:869: UserWarning: Memory Efficient attention defaults to a non-deterministic algorithm. To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False). (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/attention_backward.cu:900.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[epistolary] step     0/286  val_own=3.0934  val_mix=2.4730
+[epistolary] step    14/286  val_own=2.7084  val_mix=4.2905
+[epistolary] step    28/286  val_own=2.3141  val_mix=3.9753
+[epistolary] step    42/286  val_own=2.1362  val_mix=3.8466
+[epistolary] step    56/286  val_own=2.0389  val_mix=3.6961
+[epistolary] step    70/286  val_own=1.9689  val_mix=3.5951
+[epistolary] step    84/286  val_own=1.9267  val_mix=3.5269
+[epistolary] step    98/286  val_own=1.8918  val_mix=3.4213
+[epistolary] step   112/286  val_own=1.8669  val_mix=3.4282
+[epistolary] step   126/286  val_own=1.8510  val_mix=3.3801
+[epistolary] step   140/286  val_own=1.8221  val_mix=3.3375
+[epistolary] step   154/286  val_own=1.8193  val_mix=3.3921
+[epistolary] step   168/286  val_own=1.7868  val_mix=3.3697
+[epistolary] step   182/286  val_own=1.7865  val_mix=3.3557
+[epistolary] step   196/286  val_own=1.7688  val_mix=3.3343
+[epistolary] step   210/286  val_own=1.7610  val_mix=3.3275
+[epistolary] step   224/286  val_own=1.7443  val_mix=3.3045
+[epistolary] step   238/286  val_own=1.7360  val_mix=3.3171
+[epistolary] step   252/286  val_own=1.7276  val_mix=3.3164
+[epistolary] step   266/286  val_own=1.7167  val_mix=3.3224
+[epistolary] step   280/286  val_own=1.7111  val_mix=3.2997
+[epistolary] step   286/286  val_own=1.7163  val_mix=3.3357
+[epistolary] done. 286 steps (286 steps/epoch). checkpoints in /SimpleStories-MoP/results/checkpoints/epistolary
+=== TRAIN mixture ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (561 > 512). Running this sequence through the model will result in indexing errors
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:869: UserWarning: Memory Efficient attention defaults to a non-deterministic algorithm. To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False). (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/attention_backward.cu:900.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[mixture] step     0/1421  val_mix=2.4730
+[mixture] step    71/1421  val_mix=2.0885
+[mixture] step   142/1421  val_mix=2.0116
+[mixture] step   213/1421  val_mix=1.9747
+[mixture] step   284/1421  val_mix=1.9468
+[mixture] step   355/1421  val_mix=1.9212
+[mixture] step   426/1421  val_mix=1.9128
+[mixture] step   497/1421  val_mix=1.8919
+[mixture] step   568/1421  val_mix=1.8805
+[mixture] step   639/1421  val_mix=1.8678
+[mixture] step   710/1421  val_mix=1.8646
+[mixture] step   781/1421  val_mix=1.8555
+[mixture] step   852/1421  val_mix=1.8395
+[mixture] step   923/1421  val_mix=1.8365
+[mixture] step   994/1421  val_mix=1.8274
+[mixture] step  1065/1421  val_mix=1.8239
+[mixture] step  1136/1421  val_mix=1.8197
+[mixture] step  1207/1421  val_mix=1.8128
+[mixture] step  1278/1421  val_mix=1.8094
+[mixture] step  1349/1421  val_mix=1.8040
+[mixture] step  1420/1421  val_mix=1.7952
+[mixture] step  1421/1421  val_mix=1.7961
+[mixture] done. 1421 steps (1421 steps/epoch). checkpoints in /SimpleStories-MoP/results/checkpoints/mixture
+=== EVAL noir_detective ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[noir_detective] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[noir_detective] step    14  total_logp=-2999415.2  ‖θ‖=101.19  ‖θ−θ_base‖=5.0174
+[noir_detective] step    28  total_logp=-2748275.9  ‖θ‖=101.31  ‖θ−θ_base‖=6.8482
+[noir_detective] step    42  total_logp=-2605471.2  ‖θ‖=101.38  ‖θ−θ_base‖=7.6671
+[noir_detective] step    56  total_logp=-2504495.3  ‖θ‖=101.42  ‖θ−θ_base‖=8.1323
+[noir_detective] step    70  total_logp=-2482844.9  ‖θ‖=101.45  ‖θ−θ_base‖=8.4798
+[noir_detective] step    84  total_logp=-2434959.9  ‖θ‖=101.48  ‖θ−θ_base‖=8.7864
+[noir_detective] step    98  total_logp=-2423881.9  ‖θ‖=101.51  ‖θ−θ_base‖=9.0809
+[noir_detective] step   112  total_logp=-2395466.8  ‖θ‖=101.54  ‖θ−θ_base‖=9.3654
+[noir_detective] step   126  total_logp=-2397781.5  ‖θ‖=101.56  ‖θ−θ_base‖=9.6423
+[noir_detective] step   140  total_logp=-2374468.1  ‖θ‖=101.59  ‖θ−θ_base‖=9.9072
+[noir_detective] step   154  total_logp=-2354057.2  ‖θ‖=101.62  ‖θ−θ_base‖=10.1607
+[noir_detective] step   168  total_logp=-2373705.8  ‖θ‖=101.65  ‖θ−θ_base‖=10.4106
+[noir_detective] step   182  total_logp=-2377129.8  ‖θ‖=101.69  ‖θ−θ_base‖=10.6546
+[noir_detective] step   196  total_logp=-2390634.8  ‖θ‖=101.72  ‖θ−θ_base‖=10.8948
+[noir_detective] step   210  total_logp=-2397671.0  ‖θ‖=101.75  ‖θ−θ_base‖=11.1292
+[noir_detective] step   224  total_logp=-2360650.3  ‖θ‖=101.78  ‖θ−θ_base‖=11.3666
+[noir_detective] step   238  total_logp=-2376574.3  ‖θ‖=101.81  ‖θ−θ_base‖=11.6034
+[noir_detective] step   252  total_logp=-2377058.7  ‖θ‖=101.84  ‖θ−θ_base‖=11.8312
+[noir_detective] step   266  total_logp=-2385027.0  ‖θ‖=101.87  ‖θ−θ_base‖=12.0515
+[noir_detective] step   280  total_logp=-2368208.3  ‖θ‖=101.90  ‖θ−θ_base‖=12.2666
+[noir_detective] step   283  total_logp=-2395931.4  ‖θ‖=101.91  ‖θ−θ_base‖=12.3153
+[noir_detective] eval done -> /SimpleStories-MoP/results/metrics/noir_detective
+=== EVAL fairy_tale ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[fairy_tale] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[fairy_tale] step    14  total_logp=-2293971.2  ‖θ‖=101.07  ‖θ−θ_base‖=4.7041
+[fairy_tale] step    28  total_logp=-2196991.2  ‖θ‖=101.09  ‖θ−θ_base‖=6.2202
+[fairy_tale] step    42  total_logp=-2147493.6  ‖θ‖=101.11  ‖θ−θ_base‖=6.9893
+[fairy_tale] step    56  total_logp=-2145635.7  ‖θ‖=101.13  ‖θ−θ_base‖=7.4976
+[fairy_tale] step    70  total_logp=-2121925.3  ‖θ‖=101.16  ‖θ−θ_base‖=7.9181
+[fairy_tale] step    84  total_logp=-2094288.3  ‖θ‖=101.19  ‖θ−θ_base‖=8.2911
+[fairy_tale] step    98  total_logp=-2148369.3  ‖θ‖=101.23  ‖θ−θ_base‖=8.6289
+[fairy_tale] step   112  total_logp=-2141305.0  ‖θ‖=101.28  ‖θ−θ_base‖=8.9564
+[fairy_tale] step   126  total_logp=-2139283.0  ‖θ‖=101.32  ‖θ−θ_base‖=9.2708
+[fairy_tale] step   140  total_logp=-2142088.4  ‖θ‖=101.36  ‖θ−θ_base‖=9.5789
+[fairy_tale] step   154  total_logp=-2133836.8  ‖θ‖=101.41  ‖θ−θ_base‖=9.8823
+[fairy_tale] step   168  total_logp=-2136417.0  ‖θ‖=101.45  ‖θ−θ_base‖=10.1640
+[fairy_tale] step   182  total_logp=-2145611.9  ‖θ‖=101.47  ‖θ−θ_base‖=10.4425
+[fairy_tale] step   196  total_logp=-2161528.4  ‖θ‖=101.51  ‖θ−θ_base‖=10.7254
+[fairy_tale] step   210  total_logp=-2155977.0  ‖θ‖=101.55  ‖θ−θ_base‖=10.9922
+[fairy_tale] step   224  total_logp=-2155259.7  ‖θ‖=101.60  ‖θ−θ_base‖=11.2489
+[fairy_tale] step   238  total_logp=-2171065.1  ‖θ‖=101.64  ‖θ−θ_base‖=11.4964
+[fairy_tale] step   252  total_logp=-2191575.2  ‖θ‖=101.69  ‖θ−θ_base‖=11.7387
+[fairy_tale] step   266  total_logp=-2183648.3  ‖θ‖=101.74  ‖θ−θ_base‖=11.9717
+[fairy_tale] step   280  total_logp=-2165490.5  ‖θ‖=101.79  ‖θ−θ_base‖=12.2120
+[fairy_tale] step   283  total_logp=-2173505.4  ‖θ‖=101.80  ‖θ−θ_base‖=12.2613
+[fairy_tale] eval done -> /SimpleStories-MoP/results/metrics/fairy_tale
+=== EVAL scientific_explainer ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[scientific_explainer] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[scientific_explainer] step    14  total_logp=-2214301.0  ‖θ‖=101.06  ‖θ−θ_base‖=4.8669
+[scientific_explainer] step    28  total_logp=-2106763.4  ‖θ‖=101.09  ‖θ−θ_base‖=6.3571
+[scientific_explainer] step    42  total_logp=-2031175.1  ‖θ‖=101.12  ‖θ−θ_base‖=7.0897
+[scientific_explainer] step    56  total_logp=-2019889.6  ‖θ‖=101.16  ‖θ−θ_base‖=7.5498
+[scientific_explainer] step    70  total_logp=-2002086.2  ‖θ‖=101.20  ‖θ−θ_base‖=7.9153
+[scientific_explainer] step    84  total_logp=-2028347.5  ‖θ‖=101.25  ‖θ−θ_base‖=8.2551
+[scientific_explainer] step    98  total_logp=-1998601.6  ‖θ‖=101.29  ‖θ−θ_base‖=8.5799
+[scientific_explainer] step   112  total_logp=-1981369.7  ‖θ‖=101.33  ‖θ−θ_base‖=8.8944
+[scientific_explainer] step   126  total_logp=-1991006.2  ‖θ‖=101.38  ‖θ−θ_base‖=9.1971
+[scientific_explainer] step   140  total_logp=-1998482.9  ‖θ‖=101.43  ‖θ−θ_base‖=9.4884
+[scientific_explainer] step   154  total_logp=-1988652.0  ‖θ‖=101.48  ‖θ−θ_base‖=9.7744
+[scientific_explainer] step   168  total_logp=-2018200.6  ‖θ‖=101.53  ‖θ−θ_base‖=10.0486
+[scientific_explainer] step   182  total_logp=-2016627.1  ‖θ‖=101.57  ‖θ−θ_base‖=10.3085
+[scientific_explainer] step   196  total_logp=-2023089.5  ‖θ‖=101.61  ‖θ−θ_base‖=10.5678
+[scientific_explainer] step   210  total_logp=-2017304.1  ‖θ‖=101.65  ‖θ−θ_base‖=10.8362
+[scientific_explainer] step   224  total_logp=-2028798.8  ‖θ‖=101.69  ‖θ−θ_base‖=11.0857
+[scientific_explainer] step   238  total_logp=-2039282.5  ‖θ‖=101.73  ‖θ−θ_base‖=11.3313
+[scientific_explainer] step   252  total_logp=-1993988.5  ‖θ‖=101.77  ‖θ−θ_base‖=11.5714
+[scientific_explainer] step   266  total_logp=-2012954.1  ‖θ‖=101.82  ‖θ−θ_base‖=11.8024
+[scientific_explainer] step   280  total_logp=-2004385.1  ‖θ‖=101.87  ‖θ−θ_base‖=12.0226
+[scientific_explainer] step   286  total_logp=-1987535.7  ‖θ‖=101.89  ‖θ−θ_base‖=12.1188
+[scientific_explainer] eval done -> /SimpleStories-MoP/results/metrics/scientific_explainer
+=== EVAL absurdist ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[absurdist] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[absurdist] step    14  total_logp=-2595819.8  ‖θ‖=101.14  ‖θ−θ_base‖=5.2028
+[absurdist] step    28  total_logp=-2447960.6  ‖θ‖=101.24  ‖θ−θ_base‖=7.0920
+[absurdist] step    42  total_logp=-2354113.6  ‖θ‖=101.30  ‖θ−θ_base‖=7.9934
+[absurdist] step    56  total_logp=-2281265.0  ‖θ‖=101.32  ‖θ−θ_base‖=8.5580
+[absurdist] step    70  total_logp=-2251778.7  ‖θ‖=101.34  ‖θ−θ_base‖=9.0349
+[absurdist] step    84  total_logp=-2223274.1  ‖θ‖=101.37  ‖θ−θ_base‖=9.4395
+[absurdist] step    98  total_logp=-2223063.2  ‖θ‖=101.40  ‖θ−θ_base‖=9.8068
+[absurdist] step   112  total_logp=-2218323.5  ‖θ‖=101.43  ‖θ−θ_base‖=10.1602
+[absurdist] step   126  total_logp=-2224572.2  ‖θ‖=101.46  ‖θ−θ_base‖=10.4932
+[absurdist] step   140  total_logp=-2224741.9  ‖θ‖=101.50  ‖θ−θ_base‖=10.8120
+[absurdist] step   154  total_logp=-2248493.4  ‖θ‖=101.53  ‖θ−θ_base‖=11.1267
+[absurdist] step   168  total_logp=-2246118.2  ‖θ‖=101.57  ‖θ−θ_base‖=11.4283
+[absurdist] step   182  total_logp=-2233832.6  ‖θ‖=101.61  ‖θ−θ_base‖=11.7233
+[absurdist] step   196  total_logp=-2241458.5  ‖θ‖=101.64  ‖θ−θ_base‖=12.0175
+[absurdist] step   210  total_logp=-2255665.1  ‖θ‖=101.68  ‖θ−θ_base‖=12.2932
+[absurdist] step   224  total_logp=-2251653.5  ‖θ‖=101.72  ‖θ−θ_base‖=12.5671
+[absurdist] step   238  total_logp=-2246859.8  ‖θ‖=101.76  ‖θ−θ_base‖=12.8427
+[absurdist] step   252  total_logp=-2271461.4  ‖θ‖=101.79  ‖θ−θ_base‖=13.1121
+[absurdist] step   266  total_logp=-2257804.6  ‖θ‖=101.83  ‖θ−θ_base‖=13.3734
+[absurdist] step   280  total_logp=-2255156.2  ‖θ‖=101.87  ‖θ−θ_base‖=13.6264
+[absurdist] step   285  total_logp=-2250300.5  ‖θ‖=101.88  ‖θ−θ_base‖=13.7149
+[absurdist] eval done -> /SimpleStories-MoP/results/metrics/absurdist
+=== EVAL epistolary ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[epistolary] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[epistolary] step    14  total_logp=-2896987.5  ‖θ‖=101.15  ‖θ−θ_base‖=5.1554
+[epistolary] step    28  total_logp=-2682907.4  ‖θ‖=101.24  ‖θ−θ_base‖=7.0150
+[epistolary] step    42  total_logp=-2593808.6  ‖θ‖=101.28  ‖θ−θ_base‖=7.9381
+[epistolary] step    56  total_logp=-2493004.7  ‖θ‖=101.30  ‖θ−θ_base‖=8.4893
+[epistolary] step    70  total_logp=-2425707.4  ‖θ‖=101.31  ‖θ−θ_base‖=8.9175
+[epistolary] step    84  total_logp=-2378553.2  ‖θ‖=101.33  ‖θ−θ_base‖=9.2969
+[epistolary] step    98  total_logp=-2305679.5  ‖θ‖=101.36  ‖θ−θ_base‖=9.6424
+[epistolary] step   112  total_logp=-2312550.3  ‖θ‖=101.39  ‖θ−θ_base‖=9.9633
+[epistolary] step   126  total_logp=-2278561.8  ‖θ‖=101.41  ‖θ−θ_base‖=10.2800
+[epistolary] step   140  total_logp=-2249548.8  ‖θ‖=101.43  ‖θ−θ_base‖=10.5965
+[epistolary] step   154  total_logp=-2286918.5  ‖θ‖=101.46  ‖θ−θ_base‖=10.8985
+[epistolary] step   168  total_logp=-2271680.3  ‖θ‖=101.48  ‖θ−θ_base‖=11.1701
+[epistolary] step   182  total_logp=-2261522.6  ‖θ‖=101.51  ‖θ−θ_base‖=11.4366
+[epistolary] step   196  total_logp=-2246992.5  ‖θ‖=101.54  ‖θ−θ_base‖=11.7089
+[epistolary] step   210  total_logp=-2242380.2  ‖θ‖=101.57  ‖θ−θ_base‖=11.9727
+[epistolary] step   224  total_logp=-2225799.7  ‖θ‖=101.60  ‖θ−θ_base‖=12.2282
+[epistolary] step   238  total_logp=-2237315.4  ‖θ‖=101.63  ‖θ−θ_base‖=12.4731
+[epistolary] step   252  total_logp=-2236249.1  ‖θ‖=101.65  ‖θ−θ_base‖=12.7107
+[epistolary] step   266  total_logp=-2239584.8  ‖θ‖=101.69  ‖θ−θ_base‖=12.9371
+[epistolary] step   280  total_logp=-2225412.8  ‖θ‖=101.72  ‖θ−θ_base‖=13.1607
+[epistolary] step   286  total_logp=-2249825.7  ‖θ‖=101.73  ‖θ−θ_base‖=13.2557
+[epistolary] eval done -> /SimpleStories-MoP/results/metrics/epistolary
+=== EVAL mixture ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[mixture] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[mixture] step    71  total_logp=-1407771.3  ‖θ‖=101.30  ‖θ−θ_base‖=7.9629
+[mixture] step   142  total_logp=-1355971.9  ‖θ‖=101.49  ‖θ−θ_base‖=9.5355
+[mixture] step   213  total_logp=-1333300.3  ‖θ‖=101.71  ‖θ−θ_base‖=10.9133
+[mixture] step   284  total_logp=-1314684.0  ‖θ‖=101.94  ‖θ−θ_base‖=12.1769
+[mixture] step   355  total_logp=-1297510.9  ‖θ‖=102.17  ‖θ−θ_base‖=13.3322
+[mixture] step   426  total_logp=-1291347.4  ‖θ‖=102.39  ‖θ−θ_base‖=14.3865
+[mixture] step   497  total_logp=-1277735.3  ‖θ‖=102.61  ‖θ−θ_base‖=15.3911
+[mixture] step   568  total_logp=-1268776.4  ‖θ‖=102.85  ‖θ−θ_base‖=16.3200
+[mixture] step   639  total_logp=-1260720.2  ‖θ‖=103.08  ‖θ−θ_base‖=17.2262
+[mixture] step   710  total_logp=-1259335.5  ‖θ‖=103.30  ‖θ−θ_base‖=18.1181
+[mixture] step   781  total_logp=-1254882.5  ‖θ‖=103.53  ‖θ−θ_base‖=18.9451
+[mixture] step   852  total_logp=-1242797.3  ‖θ‖=103.77  ‖θ−θ_base‖=19.7437
+[mixture] step   923  total_logp=-1240427.7  ‖θ‖=103.99  ‖θ−θ_base‖=20.5065
+[mixture] step   994  total_logp=-1234357.1  ‖θ‖=104.20  ‖θ−θ_base‖=21.2891
+[mixture] step  1065  total_logp=-1232977.0  ‖θ‖=104.43  ‖θ−θ_base‖=22.0072
+[mixture] step  1136  total_logp=-1228855.5  ‖θ‖=104.66  ‖θ−θ_base‖=22.7262
+[mixture] step  1207  total_logp=-1226246.0  ‖θ‖=104.88  ‖θ−θ_base‖=23.4410
+[mixture] step  1278  total_logp=-1222535.5  ‖θ‖=105.11  ‖θ−θ_base‖=24.1302
+[mixture] step  1349  total_logp=-1220871.6  ‖θ‖=105.33  ‖θ−θ_base‖=24.8351
+[mixture] step  1420  total_logp=-1216903.8  ‖θ‖=105.56  ‖θ−θ_base‖=25.5062
+[mixture] step  1421  total_logp=-1217502.1  ‖θ‖=105.56  ‖θ−θ_base‖=25.5157
+[mixture] eval done -> /SimpleStories-MoP/results/metrics/mixture
+=== LOTP ===
+step-aligned: wrote /SimpleStories-MoP/results/lotp/step_aligned.jsonl
+
+loss-aligned alignment: {'mixture_step': 1420, 'specialist_steps': {'noir_detective': 280, 'fairy_tale': 283, 'scientific_explainer': 286, 'absurdist': 285, 'epistolary': 280}}
+
+  KL fit  (primary; minimize KL(empirical || M)):
+    π = {'noir_detective': 0.20000001416451457, 'fairy_tale': 0.20000001416451457, 'scientific_explainer': 0.20000001416451457, 'absurdist': 0.19999994334194177, 'epistolary': 0.20000001416451457}
+    avg log M(x) = -459.396  residual_rms = 34.366
+
+  residual fit  (diagnostic; minimize spec L(π)):
+    π = {'noir_detective': 2.2250215186329053e-13, 'fairy_tale': 1.5461341463297282e-13, 'scientific_explainer': 2.9025376651289626e-15, 'absurdist': 8.659521529949165e-16, 'epistolary': 0.9999999999996192}
+    avg log M(x) = -483.144  residual_rms = 21.523
+
+  hull escapes: {'tau': 0.0, 'n_escapes': 2337, 'n_seqs': 2500, 'mean_gap': 28.975330212402344, 'max_gap': 112.2445068359375}
+ALL DONE

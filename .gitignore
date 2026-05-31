@@ -5,3 +5,8 @@ runs_early
 results/checkpoints
 results/lotp
 results/metrics
+simple_stories_generate/data_raw
+simple_stories_generate/__pycache__
+__pycache__/
+*.pyc
+simple_stories_generate

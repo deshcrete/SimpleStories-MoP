@@ -193,10 +193,19 @@ Not applied (intentionally):
 
 ## Environment quirks
 
-- `transformers` is pinned to `4.46.3` in `setup/requirements.txt`. The installed
-  torch is 2.4.1+cu124; transformers ≥5.x requires `torch.distributed.tensor.device_mesh`
-  which only exists from torch 2.5+. 4.46.3 fully supports Llama-arch models and
-  works with torch 2.4.
+- `transformers` is pinned to `4.46.3` in `setup/requirements.txt`. transformers
+  ≥5.x requires `torch.distributed.tensor.device_mesh` (torch 2.5+); 4.46.3 fully
+  supports Llama-arch models. It works with both torch 2.4 and torch 2.11 (tested).
+- **Blackwell GPU (2026-05-31).** The box has an RTX PRO 4000 Blackwell = compute
+  capability **sm_120**. The pinned `torch 2.4.1+cu124` only ships kernels up to
+  sm_90 -> every CUDA op raised `no kernel image is available for execution on the
+  device`. Fix: `pip install --upgrade --index-url https://download.pytorch.org/whl/cu128 torch`
+  (got `torch 2.11.0+cu128`, arch list includes sm_120). Then **uninstall
+  torchvision + torchaudio** — the cu124 builds (0.19.1 / 2.4.1) are pinned to
+  torch==2.4.1 and their broken `torchvision::nms` op makes transformers' lazy
+  import of `modeling_llama` fail (`operator torchvision::nms does not exist`).
+  The project uses neither, so removing them lets transformers see them as absent.
+  After this, training/eval run on GPU normally.
 - The HF pool is actually **3,800 stories per persona** (19,000 total across the
   single `train` split), not the ~2,150 the dataset card suggested. Our splits
   still take 500/500/150 per persona; reserve grows to ~2,650.
@@ -208,3 +217,125 @@ Not applied (intentionally):
 - **LR sweep.** Currently a single LR (5e-4). Task plan keeps a sweep open.
 - **Stratified per-topic eval.** All persona/theme/topic columns are preserved in
   the JSONL, so we can stratify retrospectively without re-running training.
+
+## Single-epoch experiment + data regeneration (2026-05-31)
+
+Goal (user): test whether the persona overfitting seen in the prior run is caused
+by **multi-epoch training (data reuse)**. We do NOT run a multi-epoch regime; we
+run a single **single-epoch, lots-of-data** experiment and contrast it against the
+already-documented multi-epoch findings. If single-epoch (with comparable/greater
+gradient steps) does not overfit, that pins reuse as the cause.
+
+- **x-axis = epochs (fractional 0->1).** On the epoch axis specialist and mixture
+  have identical per-persona exposure at every point (each persona's stories seen
+  e times in both), so it removes the step-count confound the prior run flagged.
+- **Two val sets for the overfitting diagnostic:** each specialist on its own
+  single-persona val split; mixture on the full-mix val split (union of the 5).
+  Overfitting = train down while val up. Plus the existing 150/persona inference
+  set kept as the LoTP/hull-escape test set.
+- **More data needed.** Single-epoch @ 3,300/persona gives only ~103 specialist
+  steps (< the prior run's 160) -> "undertrained" confound. Target ~10k/persona so
+  single-epoch reaches >=160 (ideally ~280) specialist steps. Hence regeneration.
+
+### Data regeneration via vendored SimpleStories pipeline
+
+- Upstream `simple_stories_generate` cloned + **vendored** (nested .git removed;
+  provenance in `simple_stories_generate/UPSTREAM.md`, commit bf306bd). The
+  `lennart-finke` and `simple-stories` org repos are the identical commit.
+- `text_data.py` LANGUAGE flipped "ja" -> "en".
+- **Persona is the controlled variable** (upstream samples it randomly ~1/3 of the
+  time as one of many axes; we fix it per batch). 5 elaborated system prompts in
+  `persona_system_prompts.json`, reverse-engineered from the actual stories in
+  `desh2806/simplestories-personas` (noir first-person/rain/diners; fairy_tale
+  "Once upon a time"+explicit Moral; explainer "The reason is that..."; absurdist
+  talking objects/unanswered questions; epistolary Dear/Yours letters).
+- `generate_personas.py` reuses the upstream USER-prompt template (very basic words,
+  same approved names, multi-story-per-completion separation) **minus** the
+  style/grammar/persona clauses — so output columns match the dataset exactly:
+  `id, persona, story, model, theme, topic, feature, initial_letter,
+  initial_word_type, num_paragraphs`. Model gpt-4o-mini (matches original).
+  theme/topic/feature randomized within persona for diversity. The original used
+  no `style`/`grammar` columns (dropped), and stored no readability scores — we
+  match (no textstat). Key read from env at launch (OPENAI_API_KEY_SIMPLESTORIES
+  or OPENAI_API_KEY); fails loudly if absent.
+- Generated data is gitignored (`simple_stories_generate/data_raw/`).
+
+### Smoke-test tuning (got persona adherence ~63% -> ~100%)
+
+Validated on small batches before the full run. Three issues found + fixed:
+
+1. **num_paragraphs 1-9 -> 2-5.** Original dataset only uses 2-5 paragraphs
+   (verified). Long (9p) stories drifted out of voice (noir -> third-person fable).
+2. **stories-per-completion 30 -> 10** (`MAX_STORIES_PER_COMPLETION`). Packing many
+   stories in one call let the voice slip to a generic children's story by story 3-4.
+3. **In-user-prompt persona reinforcement.** The system message alone is too weak:
+   the content task ("simple stories about <theme>") dominates. We now restate the
+   persona prompt inside the user message as a hard "EVERY story must be in this
+   voice" constraint. This was the biggest lever (noir 63% -> 100% first-person).
+
+Two follow-ups for fixed-opener personas:
+
+4. **initial_letter rule defers to persona opener.** The SimpleStories "start with a
+   word beginning with letter X" axis fought fairy_tale's "Once upon a time" /
+   epistolary's "Dear ___". Made it explicitly yield -> fairy opener 83% -> 100%.
+5. **Strip leading/trailing `---`.** GPT emits markdown-rule separators around
+   stories (also present in the *original* dataset); `parse_stories` now strips
+   them. Fixed a false 14% "non-conforming" epistolary rate (the content was a
+   perfect letter exchange behind a leading `---`).
+
+Final smoke-test adherence (40-56 stories/persona): noir 100% first-person+atmosphere,
+fairy 100% opener+moral, sci 100% cause-effect, absurdist 100% non-sequitur,
+epistolary 100% Dear+full-exchange.
+
+## CENTRAL METHODOLOGY FINDING: π_KL ≠ induced prior (2026-05-31)
+
+The biggest discovery of the non-uniform experiment, because it reframes the whole
+project. Detailed in `results/analysis.md`; the one-paragraph version:
+
+- **`lotp.fit_pi_kl` recovers the EVAL-SET composition, not the mixture's induced
+  prior.** It never references `P_mix`; it maximizes test-sample likelihood under
+  `Σ_i π_i P_i`, and since each specialist is ~100 nats better on its own persona
+  (near-disjoint support), the matched specialist dominates the logsumexp → the MLE
+  just counts personas in the eval set. Proven: π_KL is bit-identical across a
+  uniform and a geometric-1.5 mixture, and `eval_composition_probe.py` reproduces
+  any eval composition to 0.0000.
+- **The first run's "uniform induced prior" was therefore an artifact** of the
+  uniform 750-seq eval set, not a measurement.
+- **The induced prior IS measurable via the per-persona gap**
+  `gap_p = mean(log P_mix − log P_spec_p)` (`induced_prior.py`): tracks the
+  non-uniform data proportion at r=+0.92; under uniform data its spread is the
+  base-prior/complexity signature.
+- **Root cause** (why no π works): gaps are 18-90 nats ≫ `log π`, so the trained
+  mixture is NOT a convex combination of specialists — `P_mix ≈ Σπ_i P_i` is false
+  under near-disjoint support. The LoTP linear-system framing is ill-posed here.
+- **Hull-escape sign was inverted** in the inherited code (counted the inequality
+  holding, not the violation). Fixed in `lotp.hull_escape_count`; the first run's
+  hull narrative is inverted.
+
+## TWO induced priors (generation vs conditional fit) — 2026-05-31
+
+Follow-on to the methodology finding. Sampling from the mixture and classifying the
+samples (`generate_and_classify.py`) is the *correct* use of the KL fit — feed it
+mixture samples, not the eval set — and it recovers `P_mix(persona)`, the generation
+marginal. Validated: argmax≈KL (L1 0.007); the specialist argmax classifier is 100%
+on the real 2,500-seq test set; classifier-independent rule markers agree
+(because 52%, "Dear" 0.3%, "Once upon a time" 0.0%).
+
+Key result: there are **two distinct "induced priors" and they disagree**:
+- **Conditional competence** = the per-persona gap (`induced_prior.py`): tracks the
+  data proportion, r=+0.92. How well each persona's text is *modeled*.
+- **Free-generation marginal** = sample-and-classify (`generate_and_classify.py`):
+  base-model-dominated, r=−0.27 with the data. The mixture over-generates causal/sci
+  narration and almost never produces templated formats (letters, the fairy opener)
+  regardless of training share. What the model *generates* unconditionally.
+
+Seeding: the SimpleStories model has NO bos; generation is seeded with EOS (id=1),
+which the model treats as "start a new story" — produces clean persona-distinct text.
+
+## Single-epoch experiment outcome
+
+- No model overfits in a single epoch (val monotonic to the end); min-val ≈ final
+  for all 6. Specialists beat the mixture 5/5 → mixture-as-regularizer was a
+  multi-epoch overfitting artifact.
+- Non-uniform mixture (`mixture_exp`, geom 1.5) reuses the 5 specialists; lotp.py now
+  fits π for any mixture run (`run_for_mixture`), writing `loss_aligned{,_exp}.json`.

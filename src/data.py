@@ -6,8 +6,10 @@ Splits are produced by src/build_splits.py and live at
 This module provides:
     PERSONAS                              list[str], canonical persona order
     load_split(persona, split) -> rows    read one jsonl
-    load_mixture_train() -> rows          union of all 5 mixture.jsonl files (2,500 rows)
-    load_inference_set() -> rows          union of all 5 inference.jsonl files (750 rows)
+    load_mixture_train() -> rows          union of all 5 train.jsonl files (~45,000 rows)
+    load_val(persona) -> rows             one persona's val split (single-persona val)
+    load_full_mix_val() -> rows           union of all 5 val.jsonl files (~2,500 rows)
+    load_test_set() -> rows               union of all 5 test.jsonl files (~2,500 rows)
     tokenize_story(text, tokenizer)       canonical tokenization (no BOS, append EOS)
     StoryDataset                          PyTorch Dataset for causal LM training
     collate_for_clm                       pad batch + build labels with -100 on padding
@@ -51,18 +53,88 @@ def load_split(persona: str, split: str) -> list[dict]:
 
 
 def load_mixture_train() -> list[dict]:
-    """The mixture model's training set: union of every persona's `mixture.jsonl`."""
+    """The mixture model's training set: union of every persona's `train.jsonl`.
+    This is the SAME per-persona data each specialist trains on (identical train
+    split, see task_plan.md), so the only difference is the cross-persona examples."""
     rows: list[dict] = []
     for persona in PERSONAS:
-        rows.extend(load_split(persona, "mixture"))
+        rows.extend(load_split(persona, "train"))
     return rows
 
 
-def load_inference_set() -> list[dict]:
-    """The 750-seq combined inference set used for LoTP and per-checkpoint eval."""
+# Non-uniform mixture: geometric (ratio 1.5) proportions over PERSONAS in canonical
+# order (noir_detective the most, epistolary the least). Used to test whether the
+# recovered LoTP π tracks a non-uniform DATA prior — see task_plan.md.
+MIXTURE_EXP_RATIO = 1.5
+
+
+def mixture_exp_weights() -> dict[str, float]:
+    """Normalized geometric (ratio 1.5) proportions over PERSONAS, canonical order."""
+    raw = {p: MIXTURE_EXP_RATIO ** (len(PERSONAS) - 1 - i) for i, p in enumerate(PERSONAS)}
+    total = sum(raw.values())
+    return {p: raw[p] / total for p in PERSONAS}
+
+
+def load_mixture_train_nonuniform() -> list[dict]:
+    """Non-uniform mixture training set. Each persona contributes a geometric
+    (ratio 1.5) share, anchored so the largest-weight persona uses its full train
+    split. Sub-sampling takes the first n_i rows of the already-shuffled train.jsonl,
+    so it is deterministic. Specialists are unchanged (still trained on the full
+    train split) — only the mixture's composition is non-uniform."""
+    weights = mixture_exp_weights()
+    anchor = max(PERSONAS, key=lambda p: weights[p])
+    anchor_n = len(load_split(anchor, "train"))
+    rows: list[dict] = []
+    for p in PERSONAS:
+        n_p = round(anchor_n * weights[p] / weights[anchor])
+        train = load_split(p, "train")
+        if n_p > len(train):
+            raise RuntimeError(f"non-uniform mixture needs {n_p} of {p} but only {len(train)} available")
+        rows.extend(train[:n_p])
+    return rows
+
+
+def _nonuniform_total() -> int:
+    """Total example count of the non-uniform mixture (for size-matching)."""
+    weights = mixture_exp_weights()
+    anchor = max(PERSONAS, key=lambda p: weights[p])
+    anchor_n = len(load_split(anchor, "train"))
+    return sum(round(anchor_n * weights[p] / weights[anchor]) for p in PERSONAS)
+
+
+def load_mixture_train_uniform_matched() -> list[dict]:
+    """UNIFORM mixture matched in TOTAL size to the non-uniform mixture, so that a
+    comparison between the two isolates composition from total training amount. Each
+    persona contributes total_nonuniform / 5 examples (first n of its train split)."""
+    n_per = round(_nonuniform_total() / len(PERSONAS))
+    rows: list[dict] = []
+    for p in PERSONAS:
+        train = load_split(p, "train")
+        if n_per > len(train):
+            raise RuntimeError(f"size-matched uniform needs {n_per} of {p} but only {len(train)} available")
+        rows.extend(train[:n_per])
+    return rows
+
+
+def load_val(persona: str) -> list[dict]:
+    """One persona's val split — the specialist's single-persona overfitting val."""
+    return load_split(persona, "val")
+
+
+def load_full_mix_val() -> list[dict]:
+    """Union of all 5 persona val splits — the mixture's full-mix overfitting val."""
     rows: list[dict] = []
     for persona in PERSONAS:
-        rows.extend(load_split(persona, "inference"))
+        rows.extend(load_split(persona, "val"))
+    return rows
+
+
+def load_test_set() -> list[dict]:
+    """The combined test set (union of all 5 `test.jsonl`, ~2,500 seqs) used for
+    LoTP and per-checkpoint cross-evaluation. Held out from all training."""
+    rows: list[dict] = []
+    for persona in PERSONAS:
+        rows.extend(load_split(persona, "test"))
     return rows
 
 

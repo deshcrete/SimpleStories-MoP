@@ -45,11 +45,12 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.special import logsumexp
 
-from data import PERSONAS, load_inference_set
+from data import PERSONAS, load_test_set
 
 RESULTS_DIR = Path(__file__).resolve().parents[1] / "results"
 METRICS_ROOT = RESULTS_DIR / "metrics"
 LOTP_ROOT = RESULTS_DIR / "lotp"
+CHECKPOINT_ROOT = RESULTS_DIR / "checkpoints"
 
 RUNS = PERSONAS + ["mixture"]   # specialists first, mixture last
 
@@ -57,10 +58,10 @@ RUNS = PERSONAS + ["mixture"]   # specialists first, mixture last
 # ---------- inference-set indexing ----------
 
 def persona_to_indices() -> dict[str, np.ndarray]:
-    """Map persona name -> the sequence indices in the 750-seq inference matrix
+    """Map persona name -> the sequence indices in the ~2,500-seq test matrix
     whose source persona equals that name. This is the canonical own-held-out
     slice for each specialist."""
-    rows = load_inference_set()
+    rows = load_test_set()
     out: dict[str, list[int]] = {p: [] for p in PERSONAS}
     for j, r in enumerate(rows):
         out[r["persona"]].append(j)
@@ -164,6 +165,40 @@ def fit_pi_kl(log_p_specialists: np.ndarray, log_p_mixture: np.ndarray,
     return pi, residual_rms, avg_loglik
 
 
+def fit_pi_linear(log_p_specialists: np.ndarray, log_p_mixture: np.ndarray,
+                  init_pi: np.ndarray | None = None) -> tuple[np.ndarray, float]:
+    """Solve the LoTP linear system P_mix(x) = Σ_i π_i P_i(x) DIRECTLY in probability
+    space (not log/KL), on the simplex. Each sequence's equation is rescaled by its
+    own max (a per-row scaling leaves the linear solution unchanged) so the tiny
+    probabilities don't underflow, then least-squares over a softmax-parameterized π.
+
+    Unlike `fit_pi_kl` this genuinely USES P_mix (each row becomes π_persona ≈
+    exp(log P_mix − log P_max-specialist)), so it is sensitive to the mixture and
+    recovers the prior's RANKING — though compressed toward uniform because the
+    exp(gap) magnitudes are tiny. The objective is convex in π (a non-negative
+    least-squares on the simplex), so the optimum is unique. Returns
+    (pi, prob_residual_rms)."""
+    n = log_p_specialists.shape[0]
+    m = np.maximum(log_p_specialists.max(axis=0), log_p_mixture)
+    A = np.exp(log_p_specialists - m)      # (P, J), in (0, 1]
+    b = np.exp(log_p_mixture - m)          # (J,)
+    if init_pi is None:
+        x0 = np.zeros(n, dtype=np.float64)
+    else:
+        pi0 = np.maximum(np.asarray(init_pi, dtype=np.float64), 1e-12)
+        x0 = np.log(pi0 / pi0.sum())
+
+    def loss(logits: np.ndarray) -> float:
+        pi = np.exp(logits - logsumexp(logits))
+        return float(np.mean((pi @ A - b) ** 2))
+
+    res = minimize(loss, x0, method="L-BFGS-B",
+                   options={"ftol": 1e-16, "gtol": 1e-13, "maxiter": 5000})
+    pi = np.exp(res.x - logsumexp(res.x))
+    pi /= pi.sum()
+    return pi, float(np.sqrt(res.fun))
+
+
 def per_persona_residual(log_p_specialists: np.ndarray, log_p_mixture: np.ndarray,
                           pi: np.ndarray, idx_map: dict[str, np.ndarray]) -> dict[str, float]:
     """Per-persona breakdown of the squared residual under fitted π, to detect
@@ -178,31 +213,38 @@ def per_persona_residual(log_p_specialists: np.ndarray, log_p_mixture: np.ndarra
 
 def hull_escape_count(log_p_specialists: np.ndarray, log_p_mixture: np.ndarray,
                       tau: float = 0.0) -> dict:
-    """Sequences where the LoTP inequality is broken at margin τ.
+    """Convex-hull ESCAPE = the mixture beats the BEST specialist, i.e. the LoTP
+    inequality P_mix(x) ≤ max_i P_persona_i(x) is VIOLATED.
 
-    Inequality P_mix(x) ≤ max_i P_persona_i(x). In log-space:
-    log P_mix ≤ max_i log P_persona_i. Escape iff max_i log P_persona_i >
-    log P_mix + τ.
+    In log-space: escape iff log P_mix > max_i log P_persona_i + τ. We report
+    `excess = log P_mix - max_i log P_specialist_i` (>0 on an escape). Escapes are
+    expected to rise with overfitting (the design doc) — the mixture rescues
+    specialists that have overfit their own data.
+
+    NOTE: earlier code had this sign INVERTED (it counted `max_i P_i > P_mix`, i.e.
+    the inequality HOLDING, and called that an escape). Fixed here to match the
+    design-doc definition; downstream n_escapes therefore changed meaning.
     """
     max_specialist = log_p_specialists.max(axis=0)
-    gap = max_specialist - log_p_mixture
-    escapes = gap > tau
+    excess = log_p_mixture - max_specialist   # >0: mixture beats every specialist
+    escapes = excess > tau
     return {
         "tau": tau,
         "n_escapes": int(escapes.sum()),
         "n_seqs": int(log_p_mixture.size),
-        "mean_gap": float(gap.mean()),
-        "max_gap": float(gap.max()),
+        "mean_excess": float(excess.mean()),
+        "max_excess": float(excess.max()),
     }
 
 
 # ---------- alignment ----------
 
-def pair_steps_step_aligned(per_run_steps: dict[str, np.ndarray]) -> list[dict]:
+def pair_steps_step_aligned(per_run_steps: dict[str, np.ndarray],
+                            mixture_run: str = "mixture") -> list[dict]:
     """For each mixture checkpoint, pair each specialist with its closest
     available step. Edge case: for late mixture checkpoints (past the
     specialist's last step), all specialists pin to their final checkpoint."""
-    mixture_steps = per_run_steps["mixture"]
+    mixture_steps = per_run_steps[mixture_run]
     pairs: list[dict] = []
     for ms in mixture_steps.tolist():
         chosen = {"mixture_step": int(ms), "specialist_steps": {}, "specialist_gap": {}}
@@ -215,18 +257,19 @@ def pair_steps_step_aligned(per_run_steps: dict[str, np.ndarray]) -> list[dict]:
     return pairs
 
 
-def stack_log_p_for_alignment(run_data: dict, mode_choice: dict) -> tuple[np.ndarray, np.ndarray]:
+def stack_log_p_for_alignment(run_data: dict, mode_choice: dict,
+                              mixture_run: str = "mixture") -> tuple[np.ndarray, np.ndarray]:
     """Given a per-run dict {run: (steps, matrix, rows)} and an alignment
     {'mixture_step': int, 'specialist_steps': {persona: step}}, return
     (log_p_specialists[5, n_seqs], log_p_mixture[n_seqs]) at those checkpoints."""
-    n_seqs = run_data["mixture"][1].shape[1]
+    n_seqs = run_data[mixture_run][1].shape[1]
     spec = np.zeros((len(PERSONAS), n_seqs), dtype=np.float64)
     for i, persona in enumerate(PERSONAS):
         steps, matrix, _ = run_data[persona]
         step = mode_choice["specialist_steps"][persona]
         idx = int(np.where(steps == step)[0][0])
         spec[i] = matrix[idx]
-    m_steps, m_matrix, _ = run_data["mixture"]
+    m_steps, m_matrix, _ = run_data[mixture_run]
     m_idx = int(np.where(m_steps == mode_choice["mixture_step"])[0][0])
     mix = m_matrix[m_idx]
     return spec, mix
@@ -234,14 +277,38 @@ def stack_log_p_for_alignment(run_data: dict, mode_choice: dict) -> tuple[np.nda
 
 def min_loss_step_own_held_out(run: str, steps: np.ndarray, matrix: np.ndarray,
                                 idx_map: dict[str, np.ndarray]) -> int:
-    """Pick the checkpoint with the highest Σ log P over the run's *own*
-    held-out: specialist -> its 150 seqs; mixture -> all 750.
-
-    Fixes the prior bug of using total_logp over the full 750 for everyone."""
+    """DIAGNOSTIC: checkpoint with the highest Σ log P over the run's *own* test
+    slice (specialist -> its persona's test seqs; mixture -> all). Selects on the
+    LoTP test set itself — kept only as a diagnostic; primary selection is
+    `min_val_loss_step`, which uses the held-out val split instead."""
     own = own_indices_for_run(run, idx_map)
     own_logp = matrix[:, own].sum(axis=1)                # (n_checkpoints,)
     best = int(np.argmax(own_logp))
     return int(steps[best])
+
+
+def min_val_loss_step(run: str) -> int:
+    """PRIMARY loss-aligned selection: the checkpoint with the lowest validation
+    loss, read from the run's train_log.jsonl. Specialists select on their own
+    single-persona val (`val_own`); the mixture on the full-mix val (`val_mix`).
+    Using val (not the test set) keeps model selection out of the LoTP fit."""
+    log_path = CHECKPOINT_ROOT / run / "train_log.jsonl"
+    if not log_path.exists():
+        raise FileNotFoundError(f"Missing {log_path}; run train.py for '{run}' first.")
+    key = "val_mix" if run.startswith("mixture") else "val_own"
+    best_step, best_loss = None, float("inf")
+    with log_path.open() as f:
+        for line in f:
+            e = json.loads(line)
+            if e.get("event") != "checkpoint":
+                continue
+            if key not in e:
+                raise RuntimeError(f"{log_path}: checkpoint step {e.get('step')} missing '{key}'")
+            if e[key] < best_loss:
+                best_loss, best_step = e[key], int(e["step"])
+    if best_step is None:
+        raise RuntimeError(f"{log_path}: no checkpoint entries with '{key}'")
+    return best_step
 
 
 # ---------- pipeline ----------
@@ -266,47 +333,51 @@ def _fit_both(spec: np.ndarray, mix: np.ndarray, idx_map: dict[str, np.ndarray])
     }
 
 
-def run_all_modes() -> None:
-    LOTP_ROOT.mkdir(parents=True, exist_ok=True)
-    idx_map = persona_to_indices()
-    run_data = {run: load_run_metrics(run) for run in RUNS}
-    per_run_steps = {run: run_data[run][0] for run in RUNS}
+def run_for_mixture(mixture_run: str, suffix: str, idx_map: dict[str, np.ndarray]) -> dict:
+    """Step- and loss-aligned LoTP fit for one mixture run against the 5 specialists.
+    Writes step_aligned{suffix}.jsonl and loss_aligned{suffix}.json."""
+    run_data = {r: load_run_metrics(r) for r in PERSONAS + [mixture_run]}
+    per_run_steps = {r: run_data[r][0] for r in PERSONAS + [mixture_run]}
 
     # --- step-aligned ---
-    pairs = pair_steps_step_aligned(per_run_steps)
+    pairs = pair_steps_step_aligned(per_run_steps, mixture_run)
     step_results = []
     for pair in pairs:
-        spec, mix = stack_log_p_for_alignment(run_data, pair)
-        result = {"alignment": pair, **_fit_both(spec, mix, idx_map)}
-        step_results.append(result)
-    (LOTP_ROOT / "step_aligned.jsonl").write_text(
+        spec, mix = stack_log_p_for_alignment(run_data, pair, mixture_run)
+        step_results.append({"alignment": pair, **_fit_both(spec, mix, idx_map)})
+    (LOTP_ROOT / f"step_aligned{suffix}.jsonl").write_text(
         "\n".join(json.dumps(r) for r in step_results) + "\n"
     )
 
-    # --- loss-aligned (per-model own held-out) ---
+    # --- loss-aligned (each model at its own min-val-loss checkpoint) ---
     loss_pair = {
-        "mixture_step": min_loss_step_own_held_out(
-            "mixture", run_data["mixture"][0], run_data["mixture"][1], idx_map),
-        "specialist_steps": {
-            p: min_loss_step_own_held_out(p, run_data[p][0], run_data[p][1], idx_map)
-            for p in PERSONAS
-        },
+        "mixture_step": min_val_loss_step(mixture_run),
+        "specialist_steps": {p: min_val_loss_step(p) for p in PERSONAS},
     }
-    spec, mix = stack_log_p_for_alignment(run_data, loss_pair)
-    loss_result = {"alignment": loss_pair, **_fit_both(spec, mix, idx_map)}
-    (LOTP_ROOT / "loss_aligned.json").write_text(json.dumps(loss_result, indent=2))
+    spec, mix = stack_log_p_for_alignment(run_data, loss_pair, mixture_run)
+    loss_result = {"mixture_run": mixture_run, "alignment": loss_pair,
+                   **_fit_both(spec, mix, idx_map)}
+    (LOTP_ROOT / f"loss_aligned{suffix}.json").write_text(json.dumps(loss_result, indent=2))
 
-    print("step-aligned: wrote", LOTP_ROOT / "step_aligned.jsonl")
-    print("\nloss-aligned alignment:", loss_pair)
-    print("\n  KL fit  (primary; minimize KL(empirical || M)):")
-    print("    π =", loss_result["kl_fit"]["pi"])
-    print(f"    avg log M(x) = {loss_result['kl_fit']['avg_loglik']:.3f}  "
-          f"residual_rms = {loss_result['kl_fit']['residual_rms']:.3f}")
-    print("\n  residual fit  (diagnostic; minimize spec L(π)):")
-    print("    π =", loss_result["residual_fit"]["pi"])
-    print(f"    avg log M(x) = {loss_result['residual_fit']['avg_loglik']:.3f}  "
-          f"residual_rms = {loss_result['residual_fit']['residual_rms']:.3f}")
-    print("\n  hull escapes:", loss_result["hull_escapes"])
+    print(f"\n=== {mixture_run} (loss-aligned: {loss_pair['mixture_step']}) ===")
+    print("  KL π   =", {k: round(v, 4) for k, v in loss_result["kl_fit"]["pi"].items()})
+    print("  hull escapes (mixture beats ALL specialists):", loss_result["hull_escapes"])
+    return loss_result
+
+
+def run_all_modes() -> None:
+    """Fit LoTP π for every available mixture run (uniform 'mixture' and, if it has
+    been trained/evaluated, the non-uniform 'mixture_exp') against the specialists."""
+    LOTP_ROOT.mkdir(parents=True, exist_ok=True)
+    idx_map = persona_to_indices()
+
+    # uniform 'mixture' plus any 'mixture_*' variant that has been evaluated.
+    mixtures = [("mixture", "")]
+    for d in sorted(METRICS_ROOT.glob("mixture_*")):
+        mixtures.append((d.name, d.name.replace("mixture", "")))
+
+    for mixture_run, suffix in mixtures:
+        run_for_mixture(mixture_run, suffix, idx_map)
 
 
 if __name__ == "__main__":

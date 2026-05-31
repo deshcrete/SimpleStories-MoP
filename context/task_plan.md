@@ -161,3 +161,73 @@ The formulation is sensitive to overfitting — escapes from the convex hull bre
 ## Current Findings (carried forward)
 
 Persona models overfit on 500 examples and end up with lower aggregate probabilities than the mixture; at minimum loss, the persona models win out as predicted by (1). This is consistent with the mixture acting as a regularizer due to dataset diversity. The apples-to-apples version above is designed to make this finding quantitative and to separate it from data-quantity confounds.
+
+---
+
+# Single-Epoch Overfitting Experiment (2026-05-31)
+
+## Hypothesis
+Persona overfitting in the prior run is caused by **multi-epoch training (data
+reuse)**, not by gradient-step count or data quantity. Test: run a single
+**single-epoch, lots-of-data** regime. If it does NOT overfit (val keeps
+improving, hull-escapes stay low, specialists don't collapse below the mixture)
+despite >= the prior run's gradient steps, multi-epoch reuse is the cause. We run
+no multi-epoch regime; we contrast against the already-documented prior findings.
+
+## Data
+~10k/persona regenerated via the vendored SimpleStories pipeline (see notes.md),
+local at `simple_stories_generate/data_raw/<persona>.jsonl`.
+
+## Splits (per persona, from ~10k)
+- `test.jsonl`  500   -> combined **2,500-seq** LoTP/hull-escape test set (was 750)
+- `val.jsonl`   500   -> overfitting diagnostic: single-persona val (specialist)
+                         and union = 2,500-seq full-mix val (mixture)
+- `train.jsonl` ~9,000 -> specialist trains on own; mixture on the union (~45,000)
+
+**DECISION (disjoint -> identical train).** The specialist's train split and this
+persona's mixture-contribution are now the SAME ~9,000 examples, not disjoint as
+in the prior run. Forced by the ~10k budget (disjoint -> ~4,500 each -> ~140 steps
+< prior 160). Identical-train is also a STRONGER control: any mixture advantage on
+a persona's held-out is then purely from cross-persona data, since the persona data
+is identical. Apples-to-apples preserved (spec and mixture see the same 9,000/persona).
+
+## Training (all 6 models; shared seed / LR / batch / AdamW / fp32)
+- `NUM_EPOCHS = 1`.
+- Specialist ~9,000/32 = ~281 steps; mixture ~45,000/32 = ~1,406 steps.
+- Frequent within-epoch checkpointing (~20/model) + step 0 + final.
+- Log `steps_per_epoch` so plots convert step -> fractional epoch.
+
+## Diagnostics (per checkpoint)
+- Train loss (running) + val loss on BOTH own single-persona val AND full-mix val.
+  Overfitting = train down while val up.
+- Per-seq Sum log P over the 2,500-seq test set (all 6 models cross-evaluated).
+- Param norms ||theta||, ||theta - theta_base||.
+- LoTP pi fit (KL primary) + hull-escape count on the test set.
+
+## Plots (x-axis = fractional epoch 0->1)
+- train-vs-val loss per model on both val sets (the overfitting story).
+- hull-escapes / pi / own-held-out logP / param-norms vs epoch.
+- On the epoch axis specialist & mixture have equal per-persona exposure at every x.
+
+## Open
+- Consume local data (build_splits reads `data_raw`) vs push regenerated data to
+  HF. Default: local.
+- LoTP pi endpoint alignment = each model's min-val-loss checkpoint; expect single-
+  epoch min-val at/near the final checkpoint (no overfit) — informative if true.
+
+## OUTCOME (2026-05-31) — see results/analysis.md and design_doc.md findings
+
+- CONFIRMED: single-epoch does not overfit (min-val = final for all 6; specialists
+  beat the mixture 5/5). Mixture-as-regularizer was a multi-epoch artifact.
+- Min-val DID land at/near the final checkpoint for every model, as predicted above.
+- NON-UNIFORM mixture (geom 1.5) revealed the LoTP π_KL estimator measures the
+  EVAL-SET composition, not the induced prior. Replaced by the per-persona gap
+  estimator (`induced_prior.py`): gap tracks the data proportion at r=+0.92.
+
+## Next experiment (proposed): 2-D data-share × complexity
+
+The gap entangles data share with persona complexity (absurdist learns worst for its
+data share). To separate the data prior from the base-model prior signature, vary a
+persona's mixture data share AND choose personas spanning known complexity, in a
+grid, and regress the gap on (share, complexity). Reuse the same pipeline; only the
+mixture compositions / persona set change.

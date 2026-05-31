@@ -1,24 +1,24 @@
-"""Build per-persona splits from desh2806/simplestories-personas.
+"""Build per-persona train/val/test splits for the single-epoch experiment.
 
-The dataset has a single `default` config; each row carries a `persona` column.
-We concatenate every available HF split (train/heldout/raw or whatever is
-exposed) into one pool, group by persona, then for each persona shuffle with a
-fixed seed and partition:
+Reads the locally generated persona data (simple_stories_generate/data_raw/<persona>.jsonl,
+produced by simple_stories_generate/generate_personas.py) and, for each persona,
+shuffles with a fixed seed and partitions:
 
-    persona_train (500)  -> the specialist's training data
-    mixture       (500)  -> this persona's contribution to the mixture model's training set
-    inference     (150)  -> held out from all training; part of the 750-seq LoTP eval
-    reserve       (rest) -> untouched during the main experiment
+    test  (500)   -> held out from all training; part of the combined LoTP/test set
+    val   (500)   -> held out; overfitting diagnostic (single-persona val; the union
+                     of all 5 is the full-mix val)
+    train (rest)  -> the specialist's training data AND this persona's contribution
+                     to the mixture's training set (IDENTICAL split — see task_plan.md
+                     "disjoint -> identical train"). With ~10k/persona this is ~9,000.
 
 Outputs:
-    data/<persona>/persona_train.jsonl
-    data/<persona>/mixture.jsonl
-    data/<persona>/inference.jsonl
-    data/<persona>/reserve.jsonl
-    data/manifest.json            (source, seed, per-persona counts, hf splits seen)
+    data/<persona>/train.jsonl
+    data/<persona>/val.jsonl
+    data/<persona>/test.jsonl
+    data/manifest.json   (source, seed, per-persona counts)
 
-Re-running with the same SEED produces bit-identical splits (rows are sorted by
-`id` before shuffling, so HF split ordering does not affect the result).
+Re-running with the same SEED is bit-identical: rows are sorted by `id` before
+shuffling, so any change in file ordering does not affect the result.
 """
 
 import json
@@ -26,9 +26,7 @@ import random
 from collections import defaultdict
 from pathlib import Path
 
-from datasets import concatenate_datasets, load_dataset
-
-SOURCE = "desh2806/simplestories-personas"
+SOURCE_DIR = Path(__file__).resolve().parents[1] / "simple_stories_generate" / "data_raw"
 PERSONAS = [
     "noir_detective",
     "fairy_tale",
@@ -38,55 +36,47 @@ PERSONAS = [
 ]
 SEED = 42
 
-N_PERSONA_TRAIN = 500
-N_MIXTURE = 500
-N_INFERENCE = 150
-N_USED = N_PERSONA_TRAIN + N_MIXTURE + N_INFERENCE  # 1150
+N_TEST = 500
+N_VAL = 500
+MIN_TRAIN = 1000  # fail loudly if a persona has too little data to train on
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
-def load_full_pool() -> tuple[list[dict], list[str]]:
-    """Load every HF split for the default config and concatenate. Returns
-    (rows, split_names_seen)."""
-    dsd = load_dataset(SOURCE)
-    split_names = list(dsd.keys())
-    if not split_names:
-        raise RuntimeError(f"{SOURCE}: no splits returned by load_dataset")
-    pool = concatenate_datasets([dsd[s] for s in split_names])
-    rows = [dict(r) for r in pool]
-    if not rows or "persona" not in rows[0]:
-        raise RuntimeError(f"{SOURCE}: 'persona' column missing; got keys {list(rows[0].keys()) if rows else []}")
-    if "id" not in rows[0]:
-        raise RuntimeError(f"{SOURCE}: 'id' column missing; needed for reproducible ordering")
-    return rows, split_names
-
-
-def group_by_persona(rows: list[dict]) -> dict[str, list[dict]]:
-    grouped: dict[str, list[dict]] = defaultdict(list)
-    for r in rows:
-        grouped[r["persona"]].append(r)
-    missing = [p for p in PERSONAS if p not in grouped]
-    if missing:
-        raise RuntimeError(f"Expected personas {PERSONAS}, missing: {missing}. Got: {list(grouped.keys())}")
-    extras = [p for p in grouped if p not in PERSONAS]
-    if extras:
-        # Fail loudly: an unexpected persona in the dataset means our split set is wrong.
-        raise RuntimeError(f"Unexpected personas in dataset: {extras}")
-    return grouped
+def load_persona_rows(persona: str) -> list[dict]:
+    """Read one persona's generated jsonl. Fails loudly if missing/empty."""
+    path = SOURCE_DIR / f"{persona}.jsonl"
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Missing generated data: {path}. Run "
+            f"simple_stories_generate/generate_personas.py first."
+        )
+    with path.open() as f:
+        rows = [json.loads(line) for line in f]
+    if not rows:
+        raise RuntimeError(f"{path}: no rows")
+    for required in ("id", "persona", "story"):
+        if required not in rows[0]:
+            raise RuntimeError(f"{path}: missing '{required}' column; got {list(rows[0].keys())}")
+    bad = [r["persona"] for r in rows if r["persona"] != persona]
+    if bad:
+        raise RuntimeError(f"{path}: rows with wrong persona label, e.g. {bad[:3]}")
+    return rows
 
 
 def split_one_persona(rows: list[dict], rng: random.Random) -> dict[str, list[dict]]:
-    if len(rows) < N_USED:
-        raise RuntimeError(f"Persona pool has {len(rows)} rows, need at least {N_USED}.")
-    # Sort by id first so HF split ordering doesn't perturb our shuffle.
-    ordered = sorted(rows, key=lambda r: r["id"])
+    need = N_TEST + N_VAL + MIN_TRAIN
+    if len(rows) < need:
+        raise RuntimeError(f"Persona pool has {len(rows)} rows, need at least {need}.")
+    # Dedupe by id (generation can occasionally repeat params -> duplicate ids), then
+    # sort by id so source ordering doesn't perturb the shuffle.
+    by_id = {r["id"]: r for r in rows}
+    ordered = sorted(by_id.values(), key=lambda r: r["id"])
     rng.shuffle(ordered)
     return {
-        "persona_train": ordered[:N_PERSONA_TRAIN],
-        "mixture":       ordered[N_PERSONA_TRAIN : N_PERSONA_TRAIN + N_MIXTURE],
-        "inference":     ordered[N_PERSONA_TRAIN + N_MIXTURE : N_USED],
-        "reserve":       ordered[N_USED:],
+        "test":  ordered[:N_TEST],
+        "val":   ordered[N_TEST : N_TEST + N_VAL],
+        "train": ordered[N_TEST + N_VAL :],
     }
 
 
@@ -98,27 +88,18 @@ def write_jsonl(rows: list[dict], path: Path) -> None:
 
 
 def main() -> None:
-    pool, hf_splits = load_full_pool()
-    print(f"Loaded {len(pool)} total rows from {SOURCE} (hf splits: {hf_splits})")
-    grouped = group_by_persona(pool)
-
     # Single rng shared across personas; state advances deterministically through
-    # the PERSONAS list. Re-running with the same SEED reproduces all five splits.
+    # the PERSONAS list. Re-running with the same SEED reproduces all splits.
     rng = random.Random(SEED)
     manifest: dict = {
-        "source": SOURCE,
-        "hf_splits_concatenated": hf_splits,
+        "source_dir": str(SOURCE_DIR),
         "seed": SEED,
-        "splits": {
-            "persona_train": N_PERSONA_TRAIN,
-            "mixture": N_MIXTURE,
-            "inference": N_INFERENCE,
-        },
+        "splits": {"test": N_TEST, "val": N_VAL, "train": "rest"},
         "personas": {},
     }
 
     for persona in PERSONAS:
-        rows = grouped[persona]
+        rows = load_persona_rows(persona)
         splits = split_one_persona(rows, rng)
 
         persona_dir = DATA_DIR / persona
@@ -126,13 +107,14 @@ def main() -> None:
             write_jsonl(split_rows, persona_dir / f"{split_name}.jsonl")
 
         manifest["personas"][persona] = {
-            "total": len(rows),
+            "total_deduped": sum(len(v) for v in splits.values()),
             "counts": {k: len(v) for k, v in splits.items()},
         }
         counts = ", ".join(f"{k}={len(v)}" for k, v in splits.items())
         print(f"{persona}: total={len(rows)} -> {counts}")
 
     manifest_path = DATA_DIR / "manifest.json"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
     with manifest_path.open("w") as f:
         json.dump(manifest, f, indent=2)
     print(f"\nmanifest written to {manifest_path}")

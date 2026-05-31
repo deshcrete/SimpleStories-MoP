@@ -1,0 +1,95 @@
+=== TRAIN mixture_unif_matched ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (561 > 512). Running this sequence through the model will result in indexing errors
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:869: UserWarning: Memory Efficient attention defaults to a non-deterministic algorithm. To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False). (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/attention_backward.cu:900.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[mixture_unif_matched] step     0/735  val_mix=2.4730
+[mixture_unif_matched] step    36/735  val_mix=2.2400
+[mixture_unif_matched] step    72/735  val_mix=2.0929
+[mixture_unif_matched] step   108/735  val_mix=2.0461
+[mixture_unif_matched] step   144/735  val_mix=2.0111
+[mixture_unif_matched] step   180/735  val_mix=1.9894
+[mixture_unif_matched] step   216/735  val_mix=1.9724
+[mixture_unif_matched] step   252/735  val_mix=1.9544
+[mixture_unif_matched] step   288/735  val_mix=1.9410
+[mixture_unif_matched] step   324/735  val_mix=1.9391
+[mixture_unif_matched] step   360/735  val_mix=1.9285
+[mixture_unif_matched] step   396/735  val_mix=1.9114
+[mixture_unif_matched] step   432/735  val_mix=1.9130
+[mixture_unif_matched] step   468/735  val_mix=1.9020
+[mixture_unif_matched] step   504/735  val_mix=1.8891
+[mixture_unif_matched] step   540/735  val_mix=1.8920
+[mixture_unif_matched] step   576/735  val_mix=1.8807
+[mixture_unif_matched] step   612/735  val_mix=1.8802
+[mixture_unif_matched] step   648/735  val_mix=1.8701
+[mixture_unif_matched] step   684/735  val_mix=1.8627
+[mixture_unif_matched] step   720/735  val_mix=1.8559
+[mixture_unif_matched] step   735/735  val_mix=1.8617
+[mixture_unif_matched] done. 735 steps (735 steps/epoch). checkpoints in /SimpleStories-MoP/results/checkpoints/mixture_unif_matched
+=== EVAL mixture_unif_matched ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[mixture_unif_matched] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[mixture_unif_matched] step    36  total_logp=-1508566.0  ‖θ‖=101.20  ‖θ−θ_base‖=6.9098
+[mixture_unif_matched] step    72  total_logp=-1410417.3  ‖θ‖=101.30  ‖θ−θ_base‖=8.0346
+[mixture_unif_matched] step   108  total_logp=-1380724.7  ‖θ‖=101.41  ‖θ−θ_base‖=8.8861
+[mixture_unif_matched] step   144  total_logp=-1356785.0  ‖θ‖=101.53  ‖θ−θ_base‖=9.6508
+[mixture_unif_matched] step   180  total_logp=-1342749.3  ‖θ‖=101.63  ‖θ−θ_base‖=10.4102
+[mixture_unif_matched] step   216  total_logp=-1331414.9  ‖θ‖=101.76  ‖θ−θ_base‖=11.1018
+[mixture_unif_matched] step   252  total_logp=-1320758.2  ‖θ‖=101.89  ‖θ−θ_base‖=11.7630
+[mixture_unif_matched] step   288  total_logp=-1311359.2  ‖θ‖=102.01  ‖θ−θ_base‖=12.3775
+[mixture_unif_matched] step   324  total_logp=-1310786.9  ‖θ‖=102.13  ‖θ−θ_base‖=12.9756
+[mixture_unif_matched] step   360  total_logp=-1304447.7  ‖θ‖=102.25  ‖θ−θ_base‖=13.5594
+[mixture_unif_matched] step   396  total_logp=-1292338.4  ‖θ‖=102.37  ‖θ−θ_base‖=14.1290
+[mixture_unif_matched] step   432  total_logp=-1292638.9  ‖θ‖=102.50  ‖θ−θ_base‖=14.6705
+[mixture_unif_matched] step   468  total_logp=-1285351.4  ‖θ‖=102.63  ‖θ−θ_base‖=15.1915
+[mixture_unif_matched] step   504  total_logp=-1276833.9  ‖θ‖=102.75  ‖θ−θ_base‖=15.6913
+[mixture_unif_matched] step   540  total_logp=-1277010.5  ‖θ‖=102.87  ‖θ−θ_base‖=16.1922
+[mixture_unif_matched] step   576  total_logp=-1271252.7  ‖θ‖=102.99  ‖θ−θ_base‖=16.6826
+[mixture_unif_matched] step   612  total_logp=-1270627.0  ‖θ‖=103.11  ‖θ−θ_base‖=17.1597
+[mixture_unif_matched] step   648  total_logp=-1264466.2  ‖θ‖=103.23  ‖θ−θ_base‖=17.6229
+[mixture_unif_matched] step   684  total_logp=-1259980.8  ‖θ‖=103.35  ‖θ−θ_base‖=18.0606
+[mixture_unif_matched] step   720  total_logp=-1255015.0  ‖θ‖=103.47  ‖θ−θ_base‖=18.4861
+[mixture_unif_matched] step   735  total_logp=-1258416.1  ‖θ‖=103.52  ‖θ−θ_base‖=18.6640
+[mixture_unif_matched] eval done -> /SimpleStories-MoP/results/metrics/mixture_unif_matched
+=== LOTP (all mixtures) ===
+
+=== mixture (loss-aligned: 1420) ===
+  KL π   = {'noir_detective': 0.2, 'fairy_tale': 0.2, 'scientific_explainer': 0.2, 'absurdist': 0.2, 'epistolary': 0.2}
+  hull escapes (mixture beats ALL specialists): {'tau': 0.0, 'n_escapes': 163, 'n_seqs': 2500, 'mean_excess': -28.975330212402344, 'max_excess': 67.82427978515625}
+
+=== mixture_exp (loss-aligned: 720) ===
+  KL π   = {'noir_detective': 0.2, 'fairy_tale': 0.2, 'scientific_explainer': 0.2, 'absurdist': 0.2, 'epistolary': 0.2}
+  hull escapes (mixture beats ALL specialists): {'tau': 0.0, 'n_escapes': 99, 'n_seqs': 2500, 'mean_excess': -52.8364498840332, 'max_excess': 85.19476318359375}
+
+=== mixture_unif_matched (loss-aligned: 720) ===
+  KL π   = {'noir_detective': 0.2, 'fairy_tale': 0.2, 'scientific_explainer': 0.2, 'absurdist': 0.2, 'epistolary': 0.2}
+  hull escapes (mixture beats ALL specialists): {'tau': 0.0, 'n_escapes': 60, 'n_seqs': 2500, 'mean_excess': -44.21979946289063, 'max_excess': 71.2176513671875}
+=== INDUCED PRIOR (all mixtures) ===
+
+=== mixture ===
+persona                   data      gap  learn_frac
+noir_detective           0.200    -29.1       0.878
+fairy_tale               0.200    -29.5       0.023
+scientific_explainer     0.200    -33.5       0.820
+absurdist                0.200    -34.7       0.875
+epistolary               0.200    -18.1       0.943
+  corr(data, gap) = n/a (uniform data)   [gap is the primary measure; learn_frac is a noisy complexity-normalized diagnostic]
+
+=== mixture_exp ===
+persona                   data      gap  learn_frac
+noir_detective           0.384    -18.0       0.924
+fairy_tale               0.256    -32.4      -0.072
+scientific_explainer     0.171    -51.3       0.724
+absurdist                0.114    -90.0       0.676
+epistolary               0.076    -72.5       0.770
+  corr(data, gap) = +0.916   [gap is the primary measure; learn_frac is a noisy complexity-normalized diagnostic]
+
+=== mixture_unif_matched ===
+persona                   data      gap  learn_frac
+noir_detective           0.200    -54.1       0.773
+fairy_tale               0.200    -34.9      -0.155
+scientific_explainer     0.200    -44.7       0.760
+absurdist                0.200    -54.8       0.803
+epistolary               0.200    -32.7       0.896
+  corr(data, gap) = n/a (uniform data)   [gap is the primary measure; learn_frac is a noisy complexity-normalized diagnostic]
+wrote /SimpleStories-MoP/results/plots/induced_prior.png
+ALL DONE

@@ -497,3 +497,165 @@ vs mix-minus-spec gap, showing the U-shape).
    but n=5 with the signal smaller than the bootstrap CI means we can't
    call it. The U-shape — specialists winning at both ends of complexity,
    mixture winning in the middle — is the clearer complexity finding.
+
+---
+
+# Single-Epoch & Non-Uniform-Mixture Experiments (2026-05-31)
+
+A second experiment series on the `induce-prior` branch. Goal: test whether the
+overfitting in the first run was caused by **multi-epoch data reuse**, then probe
+how the recovered prior behaves under a **non-uniform** data mixture. This series
+produced a methodological correction to the project's central LoTP method.
+
+## Setup changes vs the first run
+
+- **Data regenerated to ~10k/persona** via the vendored SimpleStories pipeline
+  (`simple_stories_generate/`, upstream `bf306bd`), with persona as the *controlled*
+  variable. Five elaborated persona system prompts (`persona_system_prompts.json`,
+  reverse-engineered from `desh2806/simplestories-personas`) achieved ~100% style
+  adherence after tuning (2-5 paragraphs, ≤10 stories/completion, in-prompt persona
+  reinforcement). 50,472 stories total, `gpt-4o-mini`.
+- **Splits:** per persona `test 500 / val 500 / train ~9,000`. The specialist's
+  train split *is* the persona's mixture contribution (identical, not disjoint —
+  forced by the ~10k budget and a cleaner control).
+- **Single epoch.** ~281 specialist / ~1,421 (uniform) mixture steps — *more* than
+  the first run's 160, so a no-overfit result can't be dismissed as undertraining.
+- **GPU/torch:** Blackwell (sm_120) required torch 2.11+cu128; see notes.md.
+
+## Result 1 — single-epoch training does NOT overfit
+
+- **Val loss falls monotonically to the final checkpoint for all 6 models**
+  (min-val ≈ epoch 1.0; val ~2.5 → 1.7). No U-shape. (`overfit_curves.png`.)
+- **Specialists beat the mixture on 5/5 personas** (+16 to +35 nats/seq),
+  *reversing* the first run's "mixture beats specialist on 3/5". The
+  mixture-as-regularizer effect was therefore an **artifact of specialist
+  overfitting**: remove the reuse and the specialist is simply better on its own
+  data; the mixture never rescues an overfit specialist. (`logprob_overfit.png`.)
+- **Convex-hull escapes are rare:** the mixture exceeds *all* specialists on only
+  163/2500 (6.5%) of test seqs (mean excess −29 nats — specialists better on
+  average). This used the **corrected** hull sign (see below).
+- `π_KL` (uniform mixture) = uniform 0.2000 — but see Result 2 for why that is
+  meaningless.
+
+## Result 2 — the non-uniform mixture exposes a broken estimator
+
+A second mixture (`mixture_exp`) was trained on a geometric (ratio 1.5) blend,
+canonical order: noir 0.384 / fairy 0.256 / sci 0.171 / absurd 0.114 / epist 0.076
+(~23.5k examples). Specialists were *reused* (the fixed P_i basis); only the
+mixture composition changed.
+
+- **Recovered `π_KL` was bit-identical (0.20000001) for the uniform and the
+  non-uniform mixtures** — completely blind to the strongly non-uniform data.
+  (`pi_vs_proportions.png`.)
+- **Root cause:** `fit_pi_kl` never references `P_mix`. It maximizes the test-sample
+  likelihood under `Σ_i π_i P_i`; because each specialist is ~100 nats better on its
+  own persona (near-disjoint support), the matched specialist dominates the
+  logsumexp and the MLE just recovers **how often each persona appears in the eval
+  set**. Probe (`eval_composition_probe.py`): re-fitting `π_KL` on non-uniform eval
+  subsets reproduces the eval composition to **0.0000** (uniform, geom-1.5, and
+  reversed). (`eval_composition_probe.png`.)
+- **Implication:** the first run's headline "induced prior π ≈ uniform" was an
+  artifact of (estimator blind to the mixture) × (uniform 750-seq eval set). It was
+  never measuring the induced prior. The residual fit (which *does* use P_mix) is
+  degenerate (collapses to one persona), so neither LoTP estimator works.
+
+## Result 3 — the gap-based induced-prior estimator (the fix)
+
+The induced prior is recoverable directly, per persona, at each model's min-val
+checkpoint (`induced_prior.py`):
+
+    gap_p = mean over persona-p test seqs of ( log P_mix - log P_spec_p )   [nats/seq]
+
+- **Non-uniform mixture: `gap_p` tracks the data proportion at r = +0.92** — the
+  more data a persona contributed, the closer the mixture is to its dedicated
+  specialist. **The mixture genuinely internalized the non-uniform prior**; it is
+  just invisible to `π_KL`. (`induced_prior.png`, right panel.)
+- **Uniform mixture:** with data held equal at 0.2, gaps still spread −18 → −35.
+  That spread is the **base-model prior / complexity signature** (epistolary easiest
+  to fold into the mixture, absurdist hardest). (`induced_prior.png`, left panel.)
+- **absurdist is a systematic outlier** (well below the trend): the hardest persona
+  learns *worse* than its data share predicts. So induced prior = data share
+  **modulated by persona complexity**.
+- **A normalized `π` is not recoverable.** Gaps are 18-90 nats — far larger than
+  `log(π)` for any plausible π — so the trained mixture is **not** a convex
+  combination of the specialists; `P_mix ≈ Σπ_i P_i` does not hold under near-disjoint
+  specialist support. This single fact explains both estimator failures. A
+  complexity-normalized `learn_frac = (log P_mix − log P_base)/(log P_spec − log P_base)`
+  was tried but is unstable for the easiest persona (tiny denominator), so it is kept
+  only as a noisy diagnostic.
+
+## Methodology corrections made this series
+
+1. **Hull-escape sign fixed.** `hull_escape_count` previously counted
+   `max_i P_i > P_mix` (the inequality *holding*) and called it an escape. The
+   design-doc "escape the convex hull" is the *violation* `P_mix > max_i P_i`. Sign
+   and field names (`mean_excess`/`max_excess`) corrected; the first run's
+   hull-escape narrative was inverted.
+2. **Loss-alignment now uses each model's min-VAL checkpoint** (`min_val_loss_step`),
+   not min-test-logp — keeps the LoTP test set out of model selection (now that a
+   separate val split exists).
+3. **`π_KL` deprecated as an induced-prior measure;** the gap-based estimator is
+   adopted. `π_KL` is retained only as a (correct) measure of eval-set composition.
+
+## Result 4 — the generation-based induced prior (sample from the mixture, classify)
+
+The right way to use the KL fit: it recovers the persona composition of whatever
+samples it is fed. Feed it samples **drawn from the mixture** (not the eval set) and
+it returns the mixture's own generation composition = `P_mix(persona)`.
+`src/generate_and_classify.py`: generate N=2000 stories from each mixture's min-val
+checkpoint (seeded with **EOS** — the SimpleStories model has no BOS and treats EOS
+as "begin a new story"), score each under the 5 specialists, report the prior via
+`argmax_i log P_i` and via the KL fit, and compare to the training proportions.
+
+**Validation (the measure is trustworthy):**
+- argmax and KL fit agree to **L1 ≈ 0.007**.
+- The specialist argmax classifier is **100% accurate on the 2,500 real labeled test
+  stories** (perfect confusion matrix — the ~100-nat gaps make clean persona text
+  trivial to classify).
+- Classifier-**independent** rule-based markers on 600 generations agree with the
+  classifier: causal "because" **52%** (vs sci 54% by classifier), epistolary "Dear"
+  **0.3%** (vs 0.1%), "Once upon a time" **0.0%**, first-person ~23%, generic
+  third-person ~21%.
+
+**The result — the generated prior does NOT track the training data:**
+
+| persona | trained (non-unif) | generated (KL) |
+|---|---|---|
+| noir_detective | 0.384 | 0.060 |
+| fairy_tale | 0.256 | 0.065 |
+| scientific_explainer | 0.171 | **0.540** |
+| absurdist | 0.114 | 0.333 |
+| epistolary | 0.076 | 0.001 |
+
+corr(training, generated) = **−0.27**. The uniform mixture is also strongly skewed
+(sci 0.39 / absurd 0.38 / noir 0.15 / fairy 0.08 / epist 0.008, vs 0.2 each). The
+mixture massively over-generates causal/sci narration and **almost never** produces
+the templated formats (letters, the fairy opener) — *regardless of training share*.
+(`generated_prior.png`.)
+
+**Synthesis — "induced prior" is two different quantities that disagree:**
+1. **Conditional competence** (the gap measure, Result 3): on real persona-p text,
+   how close is the mixture to that specialist → **tracks the data proportion,
+   r = +0.92**.
+2. **Free-generation marginal** (this result): what the mixture *produces*
+   unconditionally → **base-model-dominated, r = −0.27 with the data**.
+
+Data composition controls how well each persona's text is **modeled**, but barely
+controls what the model **generates** unconditionally — free sampling reverts to the
+base model's preferred register (generic causal narrative) and washes out the
+highly-templated personas (epistolary letters, fairy's fixed opener are the hardest
+to reproduce when sampling). That base-prior signature is the original project goal,
+finally visible — in *generation* rather than in `π_KL`.
+
+## Caveats / open follow-ups
+
+- **Determinism.** torch 2.11's CUDA attention backward is non-deterministic
+  (warn_only). Eval log-probs are deterministic (forward); training weights vary by
+  tiny amounts run-to-run. All effects here are 10-90 nats, far above that noise, so
+  conclusions are unaffected; a math-SDP-backend re-run would restore bit-identical
+  reproducibility.
+- **n = 5 personas.** Correlations (r = +0.92 etc.) are suggestive, not powered.
+- **Data-share / complexity entanglement.** The gap reflects both. A 2-D design that
+  varies a persona's data share *and* its complexity independently would separate
+  the data prior from the base-model prior signature — the natural next experiment.
+

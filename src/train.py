@@ -1,20 +1,27 @@
-"""Train one model (a specialist or the mixture) start-to-finish.
+"""Train one model (a specialist or the mixture) for a SINGLE epoch.
 
-Six runs in total, all sharing the same SEED, optimizer, batch size, and epoch
-count so any difference between them is attributable to the data they saw.
+Single-epoch overfitting experiment (task_plan.md): every example is seen exactly
+once, so any overfitting that shows up cannot be due to multi-epoch data reuse.
+All six runs share SEED, optimizer, batch size, and epoch count so any difference
+between them is attributable to the data they saw.
 
 CLI:
-    python src/train.py --run noir_detective       # specialist; trains on data/noir_detective/persona_train.jsonl
-    python src/train.py --run mixture              # mixture; trains on all 5 mixture.jsonl files
+    python src/train.py --run noir_detective   # specialist; trains on data/noir_detective/train.jsonl
+    python src/train.py --run mixture          # mixture; trains on the union of all 5 train.jsonl
 
 Outputs:
     results/checkpoints/<run>/step_<N>/         saved model weights at each cadence step
-    results/checkpoints/<run>/train_log.jsonl   per-step train loss + per-checkpoint eval loss
-    results/checkpoints/<run>/run_config.json   hyperparameters + git sha + which split was used
+    results/checkpoints/<run>/train_log.jsonl   per-step train loss + per-checkpoint val losses
+    results/checkpoints/<run>/run_config.json   hyperparameters + steps_per_epoch + git sha
 
-Checkpoint cadence (task_plan.md):
-    specialist: every 8 steps for first 80, every 16 after.        (~15 checkpoints over ~160 steps)
-    mixture:    every 20 steps for first 200, every 50 after.       (~15 checkpoints over ~780 steps)
+Checkpointing: ~TARGET_CHECKPOINTS evenly spaced within the single epoch, plus
+step 0 (base model) and the final step. The x-axis for all plots is fractional
+epoch = step / steps_per_epoch (0 -> 1); on that axis the specialist and the
+mixture have identical per-persona exposure at every point.
+
+Per-checkpoint validation (the overfitting diagnostic):
+    specialist -> own single-persona val (val_own) AND the full-mix val (val_mix)
+    mixture    -> the full-mix val (val_mix; this is its own held-out)
 """
 
 from __future__ import annotations
@@ -34,9 +41,12 @@ from data import (
     PERSONAS,
     StoryDataset,
     collate_for_clm,
-    load_inference_set,
+    load_full_mix_val,
     load_mixture_train,
+    load_mixture_train_nonuniform,
+    load_mixture_train_uniform_matched,
     load_split,
+    load_val,
 )
 from model import load_base_model_and_tokenizer, save_checkpoint
 
@@ -44,7 +54,8 @@ SEED = 42
 BATCH_SIZE = 32
 LR = 5e-4               # midpoint of the 3e-4..1e-3 range in task_plan.md
 WEIGHT_DECAY = 0.0      # avoid conflating with the regularization story
-NUM_EPOCHS = 10
+NUM_EPOCHS = 1          # single-epoch experiment: every example seen exactly once
+TARGET_CHECKPOINTS = 20  # evenly spaced within the single epoch
 EVAL_BATCH_SIZE = 64
 
 RESULTS_DIR = Path(__file__).resolve().parents[1] / "results"
@@ -71,30 +82,36 @@ def git_sha() -> str:
     return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
 
 
-def specialist_cadence(step: int) -> bool:
-    """Checkpoint after step `step` (1-indexed)."""
-    if step <= 80:
-        return step % 8 == 0
-    return step % 16 == 0
-
-
-def mixture_cadence(step: int) -> bool:
-    if step <= 200:
-        return step % 20 == 0
-    return step % 50 == 0
-
-
-def load_training_rows(run: str) -> tuple[list[dict], list[dict], callable]:
-    """Returns (train_rows, eval_rows, cadence_fn) for the given run name."""
+def load_train_rows(run: str) -> list[dict]:
     if run == "mixture":
-        train_rows = load_mixture_train()
-        eval_rows = load_inference_set()
-        return train_rows, eval_rows, mixture_cadence
+        return load_mixture_train()
+    if run == "mixture_exp":
+        return load_mixture_train_nonuniform()
+    if run == "mixture_unif_matched":
+        return load_mixture_train_uniform_matched()
     if run in PERSONAS:
-        train_rows = load_split(run, "persona_train")
-        eval_rows = load_split(run, "inference")
-        return train_rows, eval_rows, specialist_cadence
-    raise ValueError(f"Unknown run '{run}'. Must be 'mixture' or one of {PERSONAS}.")
+        return load_split(run, "train")
+    raise ValueError(f"Unknown run '{run}'. Must be 'mixture', 'mixture_exp', or one of {PERSONAS}.")
+
+
+def build_eval_loaders(run: str, tokenizer, pad_id: int) -> dict[str, DataLoader]:
+    """Validation sets for the overfitting diagnostic.
+
+    specialist -> {val_own: its persona val, val_mix: full-mix val}
+    mixture    -> {val_mix: full-mix val}  (its own held-out)
+    """
+    if run.startswith("mixture"):
+        sets = {"val_mix": load_full_mix_val()}
+    else:
+        sets = {"val_own": load_val(run), "val_mix": load_full_mix_val()}
+    loaders = {}
+    for name, rows in sets.items():
+        ds = StoryDataset(rows, tokenizer)
+        loaders[name] = DataLoader(
+            ds, batch_size=EVAL_BATCH_SIZE, shuffle=False,
+            collate_fn=lambda b: collate_for_clm(b, pad_id),
+        )
+    return loaders
 
 
 @torch.no_grad()
@@ -124,21 +141,24 @@ def eval_loss(model, loader, device: str) -> float:
     return total_loss / total_tokens
 
 
+def eval_all(model, eval_loaders: dict[str, DataLoader], device: str) -> dict[str, float]:
+    return {name: eval_loss(model, loader, device) for name, loader in eval_loaders.items()}
+
+
 def train_one_run(run: str) -> None:
     set_seed(SEED)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    train_rows, eval_rows, cadence_fn = load_training_rows(run)
+    train_rows = load_train_rows(run)
     model, tokenizer = load_base_model_and_tokenizer(device=device)
     pad_id = tokenizer.pad_token_id
 
     train_ds = StoryDataset(train_rows, tokenizer)
-    eval_ds = StoryDataset(eval_rows, tokenizer)
 
-    # Fixed data order: seed-shuffled at construction. Same seed -> same order across runs
-    # for the persona_train sets; the mixture set has its own deterministic order. We do
-    # *not* reshuffle every epoch — we want every model to see the same sequence ordering
-    # so trajectory comparisons are clean.
+    # Fixed data order: seed-shuffled at construction. Same seed -> same order across
+    # runs for the persona train sets; the mixture set has its own deterministic
+    # order. We do NOT reshuffle (single epoch anyway), so every model sees a fixed
+    # permutation of its data.
     g = torch.Generator()
     g.manual_seed(SEED)
     train_loader = DataLoader(
@@ -149,12 +169,12 @@ def train_one_run(run: str) -> None:
         collate_fn=lambda b: collate_for_clm(b, pad_id),
         drop_last=False,
     )
-    eval_loader = DataLoader(
-        eval_ds,
-        batch_size=EVAL_BATCH_SIZE,
-        shuffle=False,
-        collate_fn=lambda b: collate_for_clm(b, pad_id),
-    )
+    eval_loaders = build_eval_loaders(run, tokenizer, pad_id)
+
+    # ~TARGET_CHECKPOINTS evenly spaced within the single epoch.
+    steps_per_epoch = len(train_loader)
+    total_steps = steps_per_epoch * NUM_EPOCHS
+    stride = max(1, total_steps // TARGET_CHECKPOINTS)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
@@ -172,17 +192,27 @@ def train_one_run(run: str) -> None:
         "num_epochs": NUM_EPOCHS,
         "base_model": "SimpleStories/SimpleStories-V2-5M",
         "n_train": len(train_rows),
-        "n_eval": len(eval_rows),
+        "steps_per_epoch": steps_per_epoch,
+        "total_steps": total_steps,
+        "checkpoint_stride": stride,
+        "eval_sets": list(eval_loaders.keys()),
         "git_sha": git_sha(),
     }
     (out_dir / "run_config.json").write_text(json.dumps(config, indent=2))
 
-    # Save the step-0 (base model, untrained on this data) checkpoint so trajectory plots
-    # have a well-defined starting point.
-    save_checkpoint(model, out_dir / "step_0")
-    eval0 = eval_loss(model, eval_loader, device)
-    log_file.write(json.dumps({"step": 0, "event": "checkpoint", "eval_loss": eval0}) + "\n")
-    log_file.flush()
+    def checkpoint(step: int, note: str | None = None) -> None:
+        save_checkpoint(model, out_dir / f"step_{step}")
+        losses = eval_all(model, eval_loaders, device)
+        entry = {"step": step, "event": "checkpoint", **losses}
+        if note:
+            entry["note"] = note
+        log_file.write(json.dumps(entry) + "\n")
+        log_file.flush()
+        loss_str = "  ".join(f"{k}={v:.4f}" for k, v in losses.items())
+        print(f"[{run}] step {step:>5}/{total_steps}  {loss_str}")
+
+    # Step-0 (base model) checkpoint so trajectory plots have a defined start.
+    checkpoint(0, note="base")
 
     step = 0
     model.train()
@@ -199,21 +229,12 @@ def train_one_run(run: str) -> None:
             optimizer.step()
             log_file.write(json.dumps({"step": step, "event": "train", "loss": float(loss.item()), "epoch": epoch}) + "\n")
 
-            if cadence_fn(step):
-                save_checkpoint(model, out_dir / f"step_{step}")
-                ev = eval_loss(model, eval_loader, device)
-                log_file.write(json.dumps({"step": step, "event": "checkpoint", "eval_loss": ev}) + "\n")
-                log_file.flush()
-                print(f"[{run}] step {step:>5}  train_loss={float(loss.item()):.4f}  eval_loss={ev:.4f}")
-
-    # Always checkpoint the final step even if cadence didn't trigger.
-    if not cadence_fn(step):
-        save_checkpoint(model, out_dir / f"step_{step}")
-        ev = eval_loss(model, eval_loader, device)
-        log_file.write(json.dumps({"step": step, "event": "checkpoint", "eval_loss": ev, "note": "final"}) + "\n")
+            # Evenly-spaced checkpoints, and always the final step.
+            if step % stride == 0 or step == total_steps:
+                checkpoint(step)
 
     log_file.close()
-    print(f"[{run}] done. {step} steps. checkpoints in {out_dir}")
+    print(f"[{run}] done. {step} steps ({steps_per_epoch} steps/epoch). checkpoints in {out_dir}")
 
 
 def main() -> None:

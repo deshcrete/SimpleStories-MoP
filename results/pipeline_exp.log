@@ -1,0 +1,69 @@
+=== TRAIN mixture_exp ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (561 > 512). Running this sequence through the model will result in indexing errors
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:869: UserWarning: Memory Efficient attention defaults to a non-deterministic algorithm. To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False). (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/attention_backward.cu:900.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[mixture_exp] step     0/735  val_mix=2.4730
+[mixture_exp] step    36/735  val_mix=2.2606
+[mixture_exp] step    72/735  val_mix=2.1156
+[mixture_exp] step   108/735  val_mix=2.0550
+[mixture_exp] step   144/735  val_mix=2.0333
+[mixture_exp] step   180/735  val_mix=2.0201
+[mixture_exp] step   216/735  val_mix=1.9982
+[mixture_exp] step   252/735  val_mix=1.9811
+[mixture_exp] step   288/735  val_mix=1.9642
+[mixture_exp] step   324/735  val_mix=1.9576
+[mixture_exp] step   360/735  val_mix=1.9452
+[mixture_exp] step   396/735  val_mix=1.9453
+[mixture_exp] step   432/735  val_mix=1.9320
+[mixture_exp] step   468/735  val_mix=1.9289
+[mixture_exp] step   504/735  val_mix=1.9232
+[mixture_exp] step   540/735  val_mix=1.9112
+[mixture_exp] step   576/735  val_mix=1.9037
+[mixture_exp] step   612/735  val_mix=1.9170
+[mixture_exp] step   648/735  val_mix=1.9029
+[mixture_exp] step   684/735  val_mix=1.8915
+[mixture_exp] step   720/735  val_mix=1.8873
+[mixture_exp] step   735/735  val_mix=1.8890
+[mixture_exp] done. 735 steps (735 steps/epoch). checkpoints in /SimpleStories-MoP/results/checkpoints/mixture_exp
+=== EVAL mixture_exp ===
+Token indices sequence length is longer than the specified maximum sequence length for this model (526 > 512). Running this sequence through the model will result in indexing errors
+[mixture_exp] step     0  total_logp=-1668281.5  ‖θ‖=101.07  ‖θ−θ_base‖=0.0000
+[mixture_exp] step    36  total_logp=-1522999.9  ‖θ‖=101.21  ‖θ−θ_base‖=6.7551
+[mixture_exp] step    72  total_logp=-1429665.0  ‖θ‖=101.30  ‖θ−θ_base‖=7.8486
+[mixture_exp] step   108  total_logp=-1386661.9  ‖θ‖=101.40  ‖θ−θ_base‖=8.6908
+[mixture_exp] step   144  total_logp=-1372465.0  ‖θ‖=101.49  ‖θ−θ_base‖=9.5117
+[mixture_exp] step   180  total_logp=-1363895.4  ‖θ‖=101.61  ‖θ−θ_base‖=10.2452
+[mixture_exp] step   216  total_logp=-1349237.7  ‖θ‖=101.72  ‖θ−θ_base‖=10.9458
+[mixture_exp] step   252  total_logp=-1337818.6  ‖θ‖=101.85  ‖θ−θ_base‖=11.5996
+[mixture_exp] step   288  total_logp=-1325988.0  ‖θ‖=101.97  ‖θ−θ_base‖=12.2222
+[mixture_exp] step   324  total_logp=-1321490.9  ‖θ‖=102.09  ‖θ−θ_base‖=12.8234
+[mixture_exp] step   360  total_logp=-1313162.4  ‖θ‖=102.21  ‖θ−θ_base‖=13.3864
+[mixture_exp] step   396  total_logp=-1314659.6  ‖θ‖=102.33  ‖θ−θ_base‖=13.9527
+[mixture_exp] step   432  total_logp=-1305583.8  ‖θ‖=102.46  ‖θ−θ_base‖=14.4848
+[mixture_exp] step   468  total_logp=-1303756.5  ‖θ‖=102.58  ‖θ−θ_base‖=15.0026
+[mixture_exp] step   504  total_logp=-1298814.8  ‖θ‖=102.71  ‖θ−θ_base‖=15.4975
+[mixture_exp] step   540  total_logp=-1291995.7  ‖θ‖=102.83  ‖θ−θ_base‖=15.9765
+[mixture_exp] step   576  total_logp=-1285627.0  ‖θ‖=102.95  ‖θ−θ_base‖=16.4595
+[mixture_exp] step   612  total_logp=-1293932.1  ‖θ‖=103.07  ‖θ−θ_base‖=16.9354
+[mixture_exp] step   648  total_logp=-1284386.3  ‖θ‖=103.19  ‖θ−θ_base‖=17.3893
+[mixture_exp] step   684  total_logp=-1277579.0  ‖θ‖=103.31  ‖θ−θ_base‖=17.8307
+[mixture_exp] step   720  total_logp=-1276556.6  ‖θ‖=103.43  ‖θ−θ_base‖=18.2501
+[mixture_exp] step   735  total_logp=-1275500.3  ‖θ‖=103.48  ‖θ−θ_base‖=18.4233
+[mixture_exp] eval done -> /SimpleStories-MoP/results/metrics/mixture_exp
+=== LOTP (both mixtures) ===
+
+=== mixture (loss-aligned: 1420) ===
+  KL π   = {'noir_detective': 0.2, 'fairy_tale': 0.2, 'scientific_explainer': 0.2, 'absurdist': 0.2, 'epistolary': 0.2}
+  hull escapes (mixture beats ALL specialists): {'tau': 0.0, 'n_escapes': 163, 'n_seqs': 2500, 'mean_excess': -28.975330212402344, 'max_excess': 67.82427978515625}
+Traceback (most recent call last):
+  File "/SimpleStories-MoP/src/lotp.py", line 349, in <module>
+    run_all_modes()
+  File "/SimpleStories-MoP/src/lotp.py", line 345, in run_all_modes
+    run_for_mixture(mixture_run, suffix, idx_map)
+  File "/SimpleStories-MoP/src/lotp.py", line 320, in run_for_mixture
+    "mixture_step": min_val_loss_step(mixture_run),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/SimpleStories-MoP/src/lotp.py", line 272, in min_val_loss_step
+    raise RuntimeError(f"{log_path}: checkpoint step {e.get('step')} missing '{key}'")
+RuntimeError: /SimpleStories-MoP/results/checkpoints/mixture_exp/train_log.jsonl: checkpoint step 0 missing 'val_own'
+ALL DONE

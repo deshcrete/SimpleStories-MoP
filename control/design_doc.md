@@ -255,3 +255,55 @@ Plot: `results/plots/complexity_analysis.png`.
   training performance. dev_norm at peak already rank-orders with complexity
   in this run; worth following the trajectory more carefully.
 
+---
+
+## Findings — single-epoch + non-uniform series (induce-prior branch)
+
+Full log: `results/analysis.md` §"Single-Epoch & Non-Uniform-Mixture Experiments".
+Data regenerated to ~10k/persona; splits test 500 / val 500 / train ~9k; single-epoch
+training (~281 spec / ~1,421 mix steps).
+
+1. **Single-epoch training does not overfit.** Val loss falls monotonically to the
+   final checkpoint for all 6 models (no U-shape). Specialists beat the mixture on
+   **5/5** personas, reversing the multi-epoch run's "mixture beats spec 3/5". The
+   **mixture-as-regularizer effect was an artifact of multi-epoch specialist
+   overfitting**, exactly the hypothesis. (`overfit_curves.png`, `logprob_overfit.png`.)
+
+2. **The LoTP `π_KL` estimator does not measure the induced prior.** Trained on a
+   strongly non-uniform mixture (geometric ratio 1.5), recovered `π_KL` was
+   bit-identical to the uniform case. `fit_pi_kl` never references `P_mix`; it
+   recovers the **eval-set composition** (matched to 0.0000 on uniform/geom/reversed
+   eval subsets). The first run's "uniform prior" was an artifact of (estimator) ×
+   (uniform eval set). (`pi_vs_proportions.png`, `eval_composition_probe.png`.)
+
+3. **The induced prior is recoverable via the per-persona gap**
+   `gap_p = mean(log P_mix − log P_spec_p)`. It tracks the non-uniform data
+   proportion at **r = +0.92** (the mixture *did* internalize the prior); under
+   uniform data the gap spread is the base-model prior/complexity signature
+   (absurdist, the hardest persona, learns worst for its data share). A normalized
+   `π` is unrecoverable because gaps (18-90 nats) ≫ `log π`: the trained mixture is
+   not a convex combination of specialists, so `P_mix ≈ Σπ_i P_i` fails under
+   near-disjoint specialist support. (`induced_prior.py`, `induced_prior.png`.)
+
+4. **Two induced priors, and they disagree.** Sampling from the mixture and
+   classifying the samples under the specialists (`generate_and_classify.py`, the
+   *correct* use of the KL fit: feed it mixture samples, not the eval set) is
+   validated — argmax≈KL (L1 0.007), classifier 100% on real text, rule-based
+   markers agree. The **generated** prior is base-model-dominated and does NOT track
+   the training data (r = −0.27): the mixture over-generates causal/sci narration and
+   almost never produces the templated formats (epistolary letters 0.3%, fairy
+   "Once upon a time" 0.0%) regardless of training share. So: **conditional
+   competence** (the gap, Result 3) tracks the data prior (r=+0.92), while the
+   **free-generation marginal** is base-prior-dominated. Data composition controls
+   how well each persona is *modeled*, not what the model *generates*. (`generated_prior.png`.)
+
+**Method corrections:** hull-escape sign fixed (escape = `P_mix > max_i P_i`);
+loss-alignment uses min-val (not the test set); `π_KL` reinterpreted as eval-set
+composition, replaced by (a) the gap-based induced-prior estimator and (b) the
+generation-based prior (sample the mixture, classify).
+
+**Next experiment:** vary a persona's data share and its complexity independently
+(2-D design) to separate the data prior from the base-model prior signature; and
+probe why free generation collapses to the base register (e.g. conditional vs
+unconditional sampling, temperature).
+

@@ -24,7 +24,7 @@ from lotp import (
     fit_pi_residual,
     hull_escape_count,
     load_run_metrics,
-    min_loss_step_own_held_out,
+    min_val_loss_step,
     persona_to_indices,
     stack_log_p_for_alignment,
 )
@@ -37,12 +37,8 @@ def build_loss_aligned():
     idx_map = persona_to_indices()
     run_data = {run: load_run_metrics(run) for run in RUNS}
     loss_pair = {
-        "mixture_step": min_loss_step_own_held_out(
-            "mixture", run_data["mixture"][0], run_data["mixture"][1], idx_map),
-        "specialist_steps": {
-            p: min_loss_step_own_held_out(p, run_data[p][0], run_data[p][1], idx_map)
-            for p in PERSONAS
-        },
+        "mixture_step": min_val_loss_step("mixture"),
+        "specialist_steps": {p: min_val_loss_step(p) for p in PERSONAS},
     }
     spec, mix = stack_log_p_for_alignment(run_data, loss_pair)
     return loss_pair, spec, mix, idx_map
