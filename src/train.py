@@ -52,7 +52,14 @@ from model import load_base_model_and_tokenizer, save_checkpoint
 
 SEED = 42
 BATCH_SIZE = 32
-LR = 5e-4               # midpoint of the 3e-4..1e-3 range in task_plan.md
+# Clustered base-model experiment (control/base_model_expr.md): the clustered data is
+# IN-DISTRIBUTION for the base model (it already fits it at ~1.97 nats/tok), unlike
+# the induce-prior personas which were out-of-distribution. lr=5e-4 (used there)
+# destabilizes a converged base — step-2 loss spiked 2.0->4.6 and never recovered.
+# We drop to 5e-5 with a linear warmup so the specialist gently sharpens on its
+# cluster instead of being knocked off the base optimum.
+LR = 5e-5
+WARMUP_RATIO = 0.1      # linear warmup over the first 10% of steps, then constant
 WEIGHT_DECAY = 0.0      # avoid conflating with the regularization story
 NUM_EPOCHS = 1          # single-epoch experiment: every example seen exactly once
 TARGET_CHECKPOINTS = 20  # evenly spaced within the single epoch
@@ -177,6 +184,12 @@ def train_one_run(run: str) -> None:
     stride = max(1, total_steps // TARGET_CHECKPOINTS)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    # Linear warmup to LR over the first WARMUP_RATIO of steps, then hold constant.
+    # Warmup kills the step-2 loss spike seen at the higher LR; constant-after keeps
+    # the schedule simple and the per-step LR readable.
+    from transformers import get_constant_schedule_with_warmup
+    warmup_steps = max(1, int(WARMUP_RATIO * total_steps))
+    scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps)
 
     out_dir = CHECKPOINT_ROOT / run
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -188,6 +201,7 @@ def train_one_run(run: str) -> None:
         "seed": SEED,
         "batch_size": BATCH_SIZE,
         "lr": LR,
+        "warmup_ratio": WARMUP_RATIO,
         "weight_decay": WEIGHT_DECAY,
         "num_epochs": NUM_EPOCHS,
         "base_model": "SimpleStories/SimpleStories-V2-5M",
@@ -227,7 +241,8 @@ def train_one_run(run: str) -> None:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            log_file.write(json.dumps({"step": step, "event": "train", "loss": float(loss.item()), "epoch": epoch}) + "\n")
+            scheduler.step()
+            log_file.write(json.dumps({"step": step, "event": "train", "loss": float(loss.item()), "lr": scheduler.get_last_lr()[0], "epoch": epoch}) + "\n")
 
             # Evenly-spaced checkpoints, and always the final step.
             if step % stride == 0 or step == total_steps:

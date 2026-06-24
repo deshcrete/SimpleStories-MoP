@@ -17,14 +17,26 @@ decision becomes encoded in a code comment, it can be compressed out of here.
 
 - `add_special_tokens=False` — matches the model card's example and avoids injecting
   an unexpected BOS at finetune time (the base model was not trained with one).
-- We **append EOS (id=1) manually** to every story before training so the model can
-  learn to terminate. Stories that hit the 512-token cap reserve room (511 tokens of
-  content + 1 EOS).
+- **EOS ... EOS scheme (updated 2026-06-24, clustered base-model experiment).** Every
+  story is tokenized as `[EOS] + content + [EOS]` (EOS id=1). Rationale: the base
+  model was pretrained on stories concatenated and *separated* by EOS, and generation
+  is seeded with a leading EOS as the "start a new story" token (see
+  generate_and_classify.py / "TWO induced priors" note). Training as `EOS ... EOS`
+  matches that format on both ends.
+  - The **leading EOS** is pure conditioning context: under the CLM shift position 0
+    is never a prediction target, so it is never scored.
+  - The **trailing EOS** is the terminator the model learns to emit.
+  - Stories at the 512 cap reserve room for both (510 content tokens + 2 EOS).
+  - *Prior runs (induce-prior branch) used append-only EOS* (`content + [EOS]`,
+    511 content + 1 EOS). The clustered experiment changed `tokenize_story` to the
+    EOS ... EOS form; re-running the old experiment would now differ by the leading
+    EOS. Both are internally consistent across the 6/4 co-trained models.
 - Log-probabilities are computed in `eval_checkpoints.py` over every label position
-  that isn't `-100`. With `add_special_tokens=False` + appended EOS, this means:
-  - log P sums over `T - 1` next-token predictions for a story of `T` real tokens
-    (since position 0 has no predecessor to be scored against). Consistent across
-    all models — does not affect LoTP fit.
+  that isn't `-100`. With `add_special_tokens=False` + `EOS ... EOS`, this means:
+  - log P sums over `T - 1` next-token predictions for a story of `T` total tokens
+    (position 0, the leading EOS, has no predecessor to be scored against). The first
+    real token is now scored (predicted from the leading EOS) and the trailing EOS is
+    scored too. Consistent across all models — does not affect cross-model comparisons.
 
 ## Split sizes (per persona, from concatenated HF pool)
 

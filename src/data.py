@@ -14,10 +14,14 @@ This module provides:
     StoryDataset                          PyTorch Dataset for causal LM training
     collate_for_clm                       pad batch + build labels with -100 on padding
 
-Tokenization convention (matches the SimpleStories model card example):
+Tokenization convention (EOS ... EOS, matching the base model's pretraining
+format of stories concatenated/separated by EOS — see notes.md):
     - add_special_tokens=False     no BOS injected by the tokenizer
-    - append EOS (id=1) manually   so the model can learn to terminate
-    - truncate to max_length=512   the model's context window
+    - prepend EOS (id=1)           leading "start a new story" delimiter (the same
+                                   token generation is seeded with); conditioning
+                                   context only — never a prediction target
+    - append EOS (id=1)            trailing terminator the model learns to emit
+    - truncate to max_length=512   the model's context window (room for both EOS)
 
 Document any change here in context/notes.md.
 """
@@ -30,12 +34,14 @@ from pathlib import Path
 import torch
 from torch.utils.data import Dataset
 
+# Clustered base-model experiment (control/base_model_expr.md): personas are the
+# kept clusters of desh2806/SimpleStories-clustered (cluster k -> persona_k;
+# cluster 4 dropped per D1). Splits built by src/build_splits_clustered.py.
 PERSONAS: list[str] = [
-    "noir_detective",
-    "fairy_tale",
-    "scientific_explainer",
-    "absurdist",
-    "epistolary",
+    "persona_0",
+    "persona_1",
+    "persona_2",
+    "persona_3",
 ]
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -139,7 +145,13 @@ def load_test_set() -> list[dict]:
 
 
 def tokenize_story(text: str, tokenizer) -> list[int]:
-    """Tokenize one story: no BOS, append EOS, truncate to MAX_LENGTH.
+    """Tokenize one story as EOS ... EOS, truncate to MAX_LENGTH.
+
+    The SimpleStories base model has no BOS; it was pretrained on stories
+    concatenated and separated by EOS (id=1), and generation is seeded with EOS as
+    the "start a new story" token (see notes.md). We mirror that exactly: prepend a
+    leading EOS (pure conditioning context — position 0 is never a prediction target
+    under the CLM shift) and append a trailing EOS (the learned terminator).
 
     Asserts the tokenizer's EOS matches our hardcoded EOS_TOKEN_ID so a future
     base-model swap or tokenizer change fails loudly here rather than silently
@@ -149,9 +161,8 @@ def tokenize_story(text: str, tokenizer) -> list[int]:
             f"tokenizer.eos_token_id={tokenizer.eos_token_id} != EOS_TOKEN_ID={EOS_TOKEN_ID}"
         )
     ids = tokenizer(text, add_special_tokens=False)["input_ids"]
-    ids = ids[: MAX_LENGTH - 1]  # leave room for EOS
-    ids.append(EOS_TOKEN_ID)
-    return ids
+    ids = ids[: MAX_LENGTH - 2]  # leave room for leading + trailing EOS
+    return [EOS_TOKEN_ID] + ids + [EOS_TOKEN_ID]
 
 
 class StoryDataset(Dataset):
